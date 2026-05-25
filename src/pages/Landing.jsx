@@ -11,11 +11,11 @@ export default function Landing() {
       <nav className="tg-nav">
         <TgLogo/>
         <div className="tg-nav-links">
-          <a>How it works</a>
-          <a>Active trials</a>
-          <a>Privacy</a>
-          <a>For researchers</a>
-          <a>FAQ</a>
+          <a href="#how" style={{ textDecoration: 'none', color: 'inherit' }}>How it works</a>
+          <Link to="/trials" style={{ textDecoration: 'none', color: 'inherit' }}>Active trials</Link>
+          <Link to="/privacy" style={{ textDecoration: 'none', color: 'inherit' }}>Privacy</Link>
+          <Link to="/researchers" style={{ textDecoration: 'none', color: 'inherit' }}>For researchers</Link>
+          <Link to="/faq" style={{ textDecoration: 'none', color: 'inherit' }}>FAQ</Link>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <Link to="/login" className="tg-btn tg-btn-ghost" style={{ padding: '10px 16px', fontSize: 14, textDecoration: 'none' }}>Sign in</Link>
@@ -232,7 +232,11 @@ export default function Landing() {
       <footer style={{ padding: '48px var(--tg-pad-x)', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
         <TgLogo/>
         <div style={{ display: 'flex', gap: 22, fontSize: 13, color: 'var(--ink-3)' }}>
-          <a>Privacy</a><a>Terms</a><a>Security</a><a>For researchers</a><a>Press</a>
+          <Link to="/privacy" style={{ textDecoration: 'none', color: 'inherit' }}>Privacy</Link>
+          <Link to="/privacy#terms" style={{ textDecoration: 'none', color: 'inherit' }}>Terms</Link>
+          <Link to="/privacy#security" style={{ textDecoration: 'none', color: 'inherit' }}>Security</Link>
+          <Link to="/researchers" style={{ textDecoration: 'none', color: 'inherit' }}>For researchers</Link>
+          <a style={{ color: 'inherit' }}>Press</a>
         </div>
         <div className="tg-mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.06em' }}>© 2026 · HIPAA · GDPR · SOC 2 Type II</div>
       </footer>
