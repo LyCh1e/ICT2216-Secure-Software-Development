@@ -77,11 +77,27 @@ npm run dev     # starts Vite dev server at http://localhost:5173
 
 Set `VITE_API_URL=http://localhost:8080` in `frontend/.env.development` to point at a locally running Flask instance.
 
+## Backend dev (without Docker)
+
+```bash
+cd ICT2216-Secure-Software-Development
+
+# Create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+
+# Install all Python dependencies (backend + pii_vault)
+pip install -r requirements.txt
+```
+
+Set the required environment variables from `.env.template` before running Flask directly.
+
 ## Project structure
 
 ```
 docker-compose.yml          ← All 6 services
 .env.template               ← Required environment variables (copy to .env)
+requirements.txt            ← Python dependencies (backend + pii_vault)
 tasks.md                    ← Implementation checklist
 
 frontend/                   ← React 18 + Vite 6
@@ -103,12 +119,10 @@ backend/                    ← Flask app
       admin.py              ← /api/admin — user/trial management, audit log
   db/init.sql               ← MySQL schema (runs on first container start)
   config.py                 ← Dev/prod config from environment variables
-  requirements.txt
 
 pii_vault/                  ← Isolated PII microservice
   app.py                    ← Vault Flask app (shared-secret auth)
   db/init.sql               ← Vault MySQL schema
-  requirements.txt
 
 nginx/
   nginx.conf                ← Reverse proxy, TLS, rate limiting, security headers
