@@ -229,16 +229,8 @@ export default function Landing() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ padding: '48px var(--tg-pad-x)', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <TgLogo/>
-        <div style={{ display: 'flex', gap: 22, fontSize: 13, color: 'var(--ink-3)' }}>
-          <Link to="/privacy" style={{ textDecoration: 'none', color: 'inherit' }}>Privacy</Link>
-          <Link to="/privacy#terms" style={{ textDecoration: 'none', color: 'inherit' }}>Terms</Link>
-          <Link to="/privacy#security" style={{ textDecoration: 'none', color: 'inherit' }}>Security</Link>
-          <Link to="/researchers" style={{ textDecoration: 'none', color: 'inherit' }}>For researchers</Link>
-          <a style={{ color: 'inherit' }}>Press</a>
-        </div>
-        <div className="tg-mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.06em' }}>© 2026 · HIPAA · GDPR · SOC 2 Type II</div>
+      <footer style={{ padding: '48px var(--tg-pad-x)', borderTop: '1px solid var(--line)', textAlign: 'center' }}>
+        <div className="tg-mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.06em' }}>© 2026 TRIALGUARD</div>
       </footer>
 
       <Modal open={modal} onClose={() => setModal(false)}>

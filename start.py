@@ -75,8 +75,31 @@ def check_unhealthy_containers():
     return unhealthy
 
 
+def purge_frontend_volume():
+    """Delete the frontend_dist volume so the new build always gets served."""
+    vol = "ict2216-secure-software-development_frontend_dist"
+
+    # Stop containers that hold the volume before removing it
+    subprocess.run(["docker", "compose", "stop", "nginx", "frontend-build"],
+                   capture_output=True)
+
+    # Remove any stopped containers still referencing the volume
+    result = subprocess.run(
+        ["docker", "ps", "-a", "--filter", f"volume={vol}", "--format", "{{{{.ID}}}}"],
+        capture_output=True, text=True,
+    )
+    for cid in result.stdout.split():
+        subprocess.run(["docker", "rm", cid.strip()], capture_output=True)
+
+    # Remove the volume itself (ignore error if it doesn't exist yet)
+    subprocess.run(["docker", "volume", "rm", vol], capture_output=True)
+
+
 def main():
     check_prerequisites()
+
+    print("Purging stale frontend volume to pick up UI changes...")
+    purge_frontend_volume()
 
     print("Building and starting TrialGuard stack...")
     result = docker_compose(["up", "-d", "--build"])

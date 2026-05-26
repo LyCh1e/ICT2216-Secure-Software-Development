@@ -76,16 +76,8 @@ export function SubpageFooter() {
           </div>
         </div>
       </section>
-      <footer style={{ padding: '40px var(--tg-pad-x)', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}><TgLogo /></Link>
-        <div style={{ display: 'flex', gap: 22, fontSize: 13, color: 'var(--ink-3)' }}>
-          <Link to="/privacy" style={{ textDecoration: 'none', color: 'inherit' }}>Privacy</Link>
-          <Link to="/privacy#terms" style={{ textDecoration: 'none', color: 'inherit' }}>Terms</Link>
-          <Link to="/privacy#security" style={{ textDecoration: 'none', color: 'inherit' }}>Security</Link>
-          <Link to="/researchers" style={{ textDecoration: 'none', color: 'inherit' }}>For researchers</Link>
-          <Link to="/faq" style={{ textDecoration: 'none', color: 'inherit' }}>FAQ</Link>
-        </div>
-        <div className="tg-mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.06em' }}>© 2026 · HIPAA · GDPR · SOC 2 Type II</div>
+      <footer style={{ padding: '40px var(--tg-pad-x)', borderTop: '1px solid var(--line)', textAlign: 'center' }}>
+        <div className="tg-mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.06em' }}>© 2026 TRIALGUARD</div>
       </footer>
     </>
   )

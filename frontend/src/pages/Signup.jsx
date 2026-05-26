@@ -24,13 +24,8 @@ function AuthFrame({ children, brand }) {
             {children}
           </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-3)' }}>
-          <span className="pa-mono">© 2026 TRIALGUARD · HIPAA · GDPR · SOC 2</span>
-          <div style={{ display: 'flex', gap: 18 }}>
-            <a className="pa-link">Privacy</a>
-            <a className="pa-link">Terms</a>
-            <a className="pa-link">Security</a>
-          </div>
+        <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+          <span className="pa-mono">© 2026 TRIALGUARD</span>
         </div>
       </div>
       <div style={{
