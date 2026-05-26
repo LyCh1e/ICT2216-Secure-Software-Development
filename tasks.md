@@ -117,7 +117,7 @@ Acceptance Criteria:
 - [x] Self-signed TLS certificate for EC2 IP (no domain)
 
 Acceptance Criteria:
-- [x] Visiting `http://18.223.111.152` redirects to `https://18.223.111.152`
+- [x] Visiting HTTP redirects to HTTPS
 - [x] React app loads over HTTPS
 - [x] API calls from React reach Flask correctly
 
@@ -655,7 +655,7 @@ Acceptance Criteria:
 
 **Status:** Not Started
 
-- [ ] Generate self-signed TLS certificate for EC2 IP `18.223.111.152`
+- [ ] Generate self-signed TLS certificate for the EC2 instance IP
 - [ ] Configure nginx to use the certificate for port 443
 - [ ] HTTP (port 80) returns 301 redirect to HTTPS
 
@@ -687,11 +687,11 @@ Acceptance Criteria:
 
 **Status:** Not Started
 
-- [ ] SSH into EC2: `ssh -i ICT2216-AY2526-T3-student21.pem student21@18.223.111.152`
+- [ ] SSH into EC2 using the provided key and instance details
 - [ ] Update packages: `sudo apt update && sudo apt upgrade -y`
 - [ ] Install Docker: follow official Docker Engine install for Ubuntu
 - [ ] Install Docker Compose plugin
-- [ ] Add `student21` user to `docker` group
+- [ ] Add the EC2 user to the `docker` group
 
 Acceptance Criteria:
 - [ ] `docker --version` and `docker compose version` return without error on EC2
@@ -721,14 +721,14 @@ Acceptance Criteria:
 
 **Status:** Not Started
 
-- [ ] Clone repo to EC2: `git clone <repo-url>`
+- [ ] Clone repo to EC2
 - [ ] Copy `.env` file to EC2 with real secrets (do not commit)
 - [ ] Run `docker compose up --build -d`
 - [ ] Verify all 5 containers running: `docker compose ps`
 
 Acceptance Criteria:
 - [ ] All containers show as healthy
-- [ ] React app loads at `https://18.223.111.152`
+- [ ] React app loads at the EC2 HTTPS URL
 - [ ] Login flow works end-to-end on EC2
 
 ---

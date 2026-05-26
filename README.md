@@ -123,12 +123,6 @@ nginx/
 | Researcher | `/researcher` | Aggregate trial stats only — no individual records |
 | Admin | `/admin` | User management, trial management, audit log (read-only on clinical data) |
 
-## Deployment (EC2)
+## Deployment
 
-The school-provided instance is at `18.223.111.152` (ports 22, 80, 443, 8080, 8888 open).
-
-```bash
-ssh -i ICT2216-AY2526-T3-student21.pem student21@18.223.111.152
-```
-
-See Phase 11 in `tasks.md` for the full deployment checklist.
+The app is deployed on a school-provided EC2 instance. See Phase 11 in `tasks.md` for the full deployment checklist.
