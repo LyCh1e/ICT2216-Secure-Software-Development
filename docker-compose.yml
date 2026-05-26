@@ -20,7 +20,9 @@ services:
     restart: unless-stopped
 
   flask:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     expose:
       - "8080"
     env_file:
@@ -35,7 +37,9 @@ services:
     restart: unless-stopped
 
   pii_vault:
-    build: ./pii_vault
+    build:
+      context: .
+      dockerfile: pii_vault/Dockerfile
     expose:
       - "8888"
     env_file:

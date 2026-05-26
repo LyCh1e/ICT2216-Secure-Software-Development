@@ -35,7 +35,7 @@ All services run in an internal Docker network. Only nginx is exposed to the int
 
 ## Quick start (Docker)
 
-**Prerequisites:** Docker Desktop (or Docker Engine + Compose plugin).
+**Prerequisites:** Docker Desktop (or Docker Engine + Compose plugin) and Python 3.
 
 ```bash
 # 1. Clone the repo
@@ -53,15 +53,16 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -out nginx/certs/cert.pem \
   -subj "/CN=localhost"
 
-# 4. Start all services
-docker compose up --build
+# 4. Start everything and open the browser
+python start.py
 ```
 
-The app will be available at `https://localhost` (accept the self-signed cert warning).
+`start.py` runs `docker compose up -d --build`, waits for the stack to become reachable, then opens `https://localhost` in your browser automatically. Accept the self-signed cert warning on first visit.
 
-### Other commands
+### Manual commands
 
 ```bash
+docker compose up --build   # start in foreground (logs streamed to terminal)
 docker compose down         # stop all services
 docker compose down -v      # stop and wipe all DB volumes
 docker compose logs -f      # stream logs from all containers
@@ -95,6 +96,7 @@ Set the required environment variables from `.env.template` before running Flask
 ## Project structure
 
 ```
+start.py                    ← One-command launcher (builds, starts, opens browser)
 docker-compose.yml          ← All 6 services
 .env.template               ← Required environment variables (copy to .env)
 requirements.txt            ← Python dependencies (backend + pii_vault)

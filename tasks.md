@@ -269,86 +269,86 @@ Acceptance Criteria:
 
 ### Task 4.1 — User Registration Endpoint
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `POST /api/auth/register`
-- [ ] Validate: unique username, valid email format, password meets complexity (min 8 chars, upper, lower, digit, symbol)
-- [ ] Hash password with bcrypt (cost factor 12) — never store plaintext
-- [ ] Reject duplicate email or username with a generic error (do not reveal which field is taken)
-- [ ] Generate TOTP secret and return QR code URI for authenticator app setup
-- [ ] Create user with `email_verified=False` and `mfa_enabled=False` initially
-- [ ] Write registration event to audit log
+- [x] `POST /api/auth/register`
+- [x] Validate: unique username, valid email format, password meets complexity (min 8 chars, upper, lower, digit, symbol)
+- [x] Hash password with bcrypt (cost factor 12) — never store plaintext
+- [x] Reject duplicate email or username with a generic error (do not reveal which field is taken)
+- [x] Generate TOTP secret and return QR code URI for authenticator app setup
+- [x] Create user with `email_verified=False` and `mfa_enabled=False` initially
+- [x] Write registration event to audit log
 
 Acceptance Criteria:
-- [ ] Duplicate registration returns generic error, not which field conflicts
-- [ ] Password is never stored or logged in plaintext
-- [ ] Audit log entry created for every registration attempt (success and failure)
+- [x] Duplicate registration returns generic error, not which field conflicts
+- [x] Password is never stored or logged in plaintext
+- [x] Audit log entry created for every registration attempt (success and failure)
 
 ---
 
 ### Task 4.2 — User Login Endpoint
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `POST /api/auth/login` — step 1: verify username + password
-- [ ] Check if account is locked (`locked_until` in future) — return generic error if so
-- [ ] Verify bcrypt hash — increment `failed_login_attempts` on failure
-- [ ] Lock account after 5 consecutive failures for 15 minutes
-- [ ] On success: reset `failed_login_attempts`, proceed to MFA step
-- [ ] Write login attempt (success/failure) to audit log with IP address
-- [ ] Generic error message for all failures — never reveal whether username or password was wrong
+- [x] `POST /api/auth/login` — step 1: verify username + password
+- [x] Check if account is locked (`locked_until` in future) — return generic error if so
+- [x] Verify bcrypt hash — increment `failed_login_attempts` on failure
+- [x] Lock account after 5 consecutive failures for 15 minutes
+- [x] On success: reset `failed_login_attempts`, proceed to MFA step
+- [x] Write login attempt (success/failure) to audit log with IP address
+- [x] Generic error message for all failures — never reveal whether username or password was wrong
 
 Acceptance Criteria:
-- [ ] Account locks after 5 failed attempts
-- [ ] Locked account returns same generic error as wrong credentials
-- [ ] Every login attempt logged with outcome and IP
+- [x] Account locks after 5 failed attempts
+- [x] Locked account returns same generic error as wrong credentials
+- [x] Every login attempt logged with outcome and IP
 
 ---
 
 ### Task 4.3 — TOTP MFA Verification Endpoint
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `POST /api/auth/verify-mfa` — step 2: verify 6-digit TOTP code
-- [ ] Use `pyotp.TOTP.verify()` server-side — reject expired codes
-- [ ] On success: create session, regenerate session ID (prevent session fixation)
-- [ ] Store role in session
-- [ ] Write MFA success/failure to audit log
+- [x] `POST /api/auth/verify-mfa` — step 2: verify 6-digit TOTP code
+- [x] Use `pyotp.TOTP.verify()` server-side — reject expired codes
+- [x] On success: create session, regenerate session ID (prevent session fixation)
+- [x] Store role in session
+- [x] Write MFA success/failure to audit log
 
 Acceptance Criteria:
-- [ ] Invalid or expired TOTP code rejected
-- [ ] Session ID regenerated on successful login
-- [ ] MFA outcome written to audit log
+- [x] Invalid or expired TOTP code rejected
+- [x] Session ID regenerated on successful login
+- [x] MFA outcome written to audit log
 
 ---
 
 ### Task 4.4 — Logout Endpoint
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `POST /api/auth/logout`
-- [ ] Clear and invalidate session server-side
-- [ ] Write logout event to audit log
-- [ ] CSRF token required
+- [x] `POST /api/auth/logout`
+- [x] Clear and invalidate session server-side
+- [x] Write logout event to audit log
+- [x] CSRF token required
 
 Acceptance Criteria:
-- [ ] Session is fully invalidated — cannot be reused after logout
-- [ ] Logout event in audit log
+- [x] Session is fully invalidated — cannot be reused after logout
+- [x] Logout event in audit log
 
 ---
 
 ### Task 4.5 — Session Management
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Session cookies set with `HttpOnly`, `Secure`, `SameSite=Strict`
-- [ ] Sessions expire after 30 minutes of inactivity
-- [ ] Session ID regenerated after login (prevent fixation)
-- [ ] Validate session on every protected request
+- [x] Session cookies set with `HttpOnly`, `Secure`, `SameSite=Strict`
+- [x] Sessions expire after 30 minutes of inactivity
+- [x] Session ID regenerated after login (prevent fixation)
+- [ ] Validate session on every protected request — enforced in Phase 5 RBAC decorator
 
 Acceptance Criteria:
-- [ ] Session cookie flags verified in browser dev tools
-- [ ] Expired session returns 401
+- [x] Session cookie flags verified in browser dev tools
+- [x] Expired session returns 401
 
 ---
 
