@@ -1,141 +1,134 @@
 # TrialGuard
 
-A secure clinical trial participant portal built as a front-end prototype for ICT2216 Secure Software Development. TrialGuard demonstrates privacy-by-design principles by letting patients participate in medical research under a pseudonymous ID — researchers never see their real identity.
+A secure clinical trial participant portal built for ICT2216 Secure Software Development. TrialGuard implements privacy-by-design principles — participants enrol under a pseudonymous ID, researchers never see real identities, and all sensitive actions are logged in a tamper-evident audit trail.
 
-## What it demonstrates
-
-- **Pseudonymous identity** — patients receive a generated ID (e.g. `PT-4F8A-2K`) at signup; researchers only ever see this token
-- **Granular consent** — participants approve each data point shared, per study
-- **Role separation** — three distinct portals (Patient / Researcher / Admin) with different access scopes
-- **Secure auth flow** — unified login with 2FA step, pseudonym vs email detection, and hardware key / SSO stubs
-- **Audit logging** — every admin action is recorded in the audit trail
-
-> This is a front-end prototype. All data is in-memory (no backend). Authentication flows are simulated.
-
----
-
-## Tech stack
+## Architecture
 
 | Layer | Technology |
 |-------|-----------|
-| Build tool | [Vite](https://vitejs.dev) v6 |
-| UI library | React 18 |
-| Routing | React Router v6 |
-| Styling | CSS custom properties (no CSS framework) |
-| Language | JavaScript (JSX) |
+| Frontend | React 18 + Vite 6 |
+| Backend | Python Flask 3 (Gunicorn) |
+| App database | MySQL 8.0 (structured data, sessions, audit log) |
+| Health telemetry | MongoDB 7.0 (time-series health data, pseudonym-keyed) |
+| PII vault | Isolated Flask microservice + separate MySQL DB |
+| Reverse proxy | nginx 1.27 (HTTPS termination, rate limiting, security headers) |
+| Containerisation | Docker + Docker Compose |
 
----
+All services run in an internal Docker network. Only nginx is exposed to the internet (ports 80 and 443). MySQL, MongoDB, and the PII vault are never reachable from outside the container network.
 
-## Installation
+## Security controls
 
-**Prerequisites:** Node.js 18 or later.
+| Control | Implementation |
+|---------|---------------|
+| Pseudonymisation | Per-participant salted HMAC-SHA256 token; real identity stored only in isolated PII vault |
+| Authentication | bcrypt (cost 12) passwords + TOTP MFA (pyotp) |
+| Account lockout | 5 failed attempts → 15-minute lockout |
+| Session security | HttpOnly, Secure, SameSite=Strict cookies; 30-min inactivity timeout; session ID regenerated on login |
+| RBAC | Server-side role enforcement on every endpoint; three roles: participant, researcher, admin |
+| IDOR protection | Every resource access validated against session user_id |
+| CSRF protection | Flask-WTF on all state-changing requests |
+| Rate limiting | 10 req/min on login, 5 req/min on register (nginx + Flask-Limiter) |
+| Audit log | Append-only, tamper-evident hash chain (SHA-256 prev_hash chaining); INSERT-only DB privilege |
+| PII erasure | Automated erasure pipeline on participant withdrawal; vault nulls all PII fields |
+| HTTPS | Self-signed TLS on nginx; HTTP → HTTPS redirect enforced |
+| Security headers | HSTS, X-Frame-Options DENY, X-Content-Type-Options nosniff, CSP default-src 'self', Referrer-Policy no-referrer |
+
+## Quick start (Docker)
+
+**Prerequisites:** Docker Desktop (or Docker Engine + Compose plugin).
 
 ```bash
 # 1. Clone the repo
 git clone <repo-url>
 cd ICT2216-Secure-Software-Development
 
-# 2. Install dependencies
-npm install
+# 2. Create your .env from the template
+cp .env.template .env
+# Edit .env — fill in all secrets (see .env.template for required vars)
 
-# 3. Start the dev server
-npm run dev
+# 3. Generate a self-signed TLS cert for nginx
+mkdir -p nginx/certs
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout nginx/certs/key.pem \
+  -out nginx/certs/cert.pem \
+  -subj "/CN=localhost"
+
+# 4. Start all services
+docker compose up --build
 ```
 
-The app will be available at `http://localhost:5173`.
+The app will be available at `https://localhost` (accept the self-signed cert warning).
 
 ### Other commands
 
 ```bash
-npm run build     # Production build → dist/
-npm run preview   # Preview the production build locally
+docker compose down         # stop all services
+docker compose down -v      # stop and wipe all DB volumes
+docker compose logs -f      # stream logs from all containers
 ```
 
----
+## Frontend dev (without Docker)
 
-## Navigating the prototype
+```bash
+cd frontend
+npm install
+npm run dev     # starts Vite dev server at http://localhost:5173
+```
 
-All portals are accessible directly from the login screen — no real credentials are required.
-
-| URL | Description |
-|-----|-------------|
-| `/` | Public landing page — trial listings, eligibility quiz, FAQ |
-| `/signup` | 3-step patient signup — email → passphrase → pseudonym reveal |
-| `/login` | Unified login for all roles (patient pseudonym or staff email) |
-| `/patient` | Patient dashboard — enrolled trials, documents, privacy controls |
-| `/researcher` | Researcher console — cohort management, scheduling, reports |
-| `/admin` | Admin console — trial oversight, user management, audit log |
-
-### Quick access
-
-From the login screen (`/login`):
-1. Enter any email (e.g. `admin@example.com`) and any password
-2. Enter any 6-digit code at the 2FA step (e.g. `123456`)
-3. Select **Admin console** or **Researcher console**
-
-For the patient portal, enter a pseudonym ID in the format `PT-XXXX-XX` (e.g. `PT-4F8A-2K`) and any password, then any 6-digit 2FA code — it routes directly to `/patient`.
-
----
+Set `VITE_API_URL=http://localhost:8080` in `frontend/.env.development` to point at a locally running Flask instance.
 
 ## Project structure
 
 ```
-index.html                  ← Vite entry point
-vite.config.js
-package.json
-.gitignore
-src/
-  main.jsx                  ← ReactDOM entry + BrowserRouter
-  App.jsx                   ← Route definitions
-  styles/
-    global.css              ← Design tokens + reset + landing styles
-    portal.css              ← Portal UI component styles
-  data/
-    landing.js              ← Public page data (trials, FAQ, stats, quotes)
-    portal.js               ← Portal data (cohort, reports, users, audit log)
-  components/
-    shared.jsx              ← Shared UI (TgLogo, Icon, TrialCard, EligibilityQuiz…)
-    portal-shell.jsx        ← Portal chrome (Topbar, Sidebar, PortalModal…)
-  pages/
-    Landing.jsx             ← Public marketing + trial discovery page
-    Login.jsx               ← Unified login (creds → 2FA → role picker)
-    Signup.jsx              ← 3-step patient registration wizard
-    PatientPortal.jsx       ← Patient dashboard (trials, documents, privacy)
-    AdminPortal.jsx         ← Admin console (trials, users, companies, audit)
-    ResearcherPortal.jsx    ← Researcher console (cohort, schedule, reports)
-.claude/
-  project-log.md            ← Development session log
+docker-compose.yml          ← All 6 services
+.env.template               ← Required environment variables (copy to .env)
+tasks.md                    ← Implementation checklist
+
+frontend/                   ← React 18 + Vite 6
+  src/
+    pages/                  ← Landing, Login, Signup, PatientPortal, ResearcherPortal, AdminPortal
+    components/             ← Shared UI, portal shell
+    data/                   ← Static seed data for UI prototype
+    styles/                 ← CSS custom properties
+
+backend/                    ← Flask app
+  app/
+    __init__.py             ← App factory (create_app)
+    extensions.py           ← SQLAlchemy, PyMongo, CSRF, Limiter, CORS
+    models/models.py        ← User, Trial, Participant, ConsentRecord, AuditLog
+    routes/
+      auth.py               ← /api/auth — register, login, MFA, logout
+      participant.py        ← /api — participant endpoints
+      researcher.py         ← /api/researcher — aggregate stats only
+      admin.py              ← /api/admin — user/trial management, audit log
+  db/init.sql               ← MySQL schema (runs on first container start)
+  config.py                 ← Dev/prod config from environment variables
+  requirements.txt
+
+pii_vault/                  ← Isolated PII microservice
+  app.py                    ← Vault Flask app (shared-secret auth)
+  db/init.sql               ← Vault MySQL schema
+  requirements.txt
+
+nginx/
+  nginx.conf                ← Reverse proxy, TLS, rate limiting, security headers
+  Dockerfile
 ```
 
----
+## Roles
 
-## Portals at a glance
+| Role | Portal | Access |
+|------|--------|--------|
+| Participant | `/patient` | Own profile, enrolled trials, health data submission, withdrawal |
+| Researcher | `/researcher` | Aggregate trial stats only — no individual records |
+| Admin | `/admin` | User management, trial management, audit log (read-only on clinical data) |
 
-### Patient portal (`/patient`)
-- Overview of enrolled trial with visit schedule and adherence tracking
-- Document vault — consent forms, results, lab reports
-- Privacy controls — per-study data sharing toggles and withdrawal
+## Deployment (EC2)
 
-### Researcher portal (`/researcher`)
-- Cohort view — master-detail list of up to 5 participants with adherence bars and flags
-- Schedule — weekly calendar of upcoming visits and check-ins
-- Reports — upload and manage participant documents (PDF, DCM, CSV, DOCX)
+The school-provided instance is at `18.223.111.152` (ports 22, 80, 443, 8080, 8888 open).
 
-### Admin portal (`/admin`)
-- Trial overview — all active studies with enrollment progress
-- User management — patient and researcher accounts
-- Company registry — verified sponsor organisations
-- Audit log — timestamped record of every action
+```bash
+ssh -i ICT2216-AY2526-T3-student21.pem student21@18.223.111.152
+```
 
----
-
-## Security concepts illustrated
-
-| Concept | Where |
-|---------|-------|
-| Pseudonymisation | Signup flow; patient ID shown to researchers only as `PT-XXXX-XX` |
-| Principle of least privilege | Separate `/patient`, `/researcher`, `/admin` routes with scoped data |
-| Granular consent | Patient portal privacy tab — per-study data toggles |
-| Audit trail | Admin portal audit log tab |
-| Defence in depth | 2FA step in login flow; passphrase-derived vault described in signup |
-| Fail securely | Auth errors show generic messages, not specific failure reasons |
+See Phase 11 in `tasks.md` for the full deployment checklist.

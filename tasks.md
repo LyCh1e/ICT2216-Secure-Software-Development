@@ -23,18 +23,18 @@ A task is done only when:
 
 ### Task 0.1 — Reorganise Folder Structure
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Move existing `src/`, `index.html`, `vite.config.js`, `package.json` into a new `frontend/` subfolder
-- [ ] Create `backend/` folder skeleton
-- [ ] Create `pii_vault/` folder skeleton
-- [ ] Create `nginx/` folder skeleton
-- [ ] Update root `.gitignore` to cover Python (`__pycache__`, `*.pyc`, `.venv`), env files (`.env`), Docker volumes, and `node_modules`
+- [x] Move existing `src/`, `index.html`, `vite.config.js`, `package.json` into a new `frontend/` subfolder
+- [x] Create `backend/` folder skeleton
+- [x] Create `pii_vault/` folder skeleton
+- [x] Create `nginx/` folder skeleton
+- [x] Update root `.gitignore` to cover Python (`__pycache__`, `*.pyc`, `.venv`), env files (`.env`), Docker volumes, and `node_modules`
 
 Acceptance Criteria:
-- [ ] Repo root contains only: `frontend/`, `backend/`, `pii_vault/`, `nginx/`, `docker-compose.yml`, `.env.template`, `tasks.md`, `README.md`
-- [ ] `cd frontend && npm run dev` still starts the React dev server
-- [ ] No secrets or `.env` files committed
+- [x] Repo root contains only: `frontend/`, `backend/`, `pii_vault/`, `nginx/`, `docker-compose.yml`, `.env.template`, `tasks.md`, `README.md`
+- [x] `cd frontend && npm run dev` still starts the React dev server
+- [x] No secrets or `.env` files committed
 
 ---
 
@@ -42,102 +42,102 @@ Acceptance Criteria:
 
 ### Task 1.1 — Create docker-compose.yml
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Define `nginx` service — ports 80 and 443, depends on `flask` and `frontend`
-- [ ] Define `flask` service — port 8080 (internal), mounts `backend/`, reads from `.env`
-- [ ] Define `mysql` service — port 3306 (internal only, not exposed to host), persistent volume
-- [ ] Define `mongodb` service — port 27017 (internal only, not exposed to host), persistent volume
-- [ ] Define `pii_vault` service — port 8888 (internal only), separate container
-- [ ] Add shared internal Docker network so services can communicate by name
-- [ ] Add health checks for MySQL and MongoDB so Flask waits for DB to be ready
+- [x] Define `nginx` service — ports 80 and 443, depends on `flask` and `frontend`
+- [x] Define `flask` service — port 8080 (internal), mounts `backend/`, reads from `.env`
+- [x] Define `mysql` service — port 3306 (internal only, not exposed to host), persistent volume
+- [x] Define `mongodb` service — port 27017 (internal only, not exposed to host), persistent volume
+- [x] Define `pii_vault` service — port 8888 (internal only), separate container
+- [x] Add shared internal Docker network so services can communicate by name
+- [x] Add health checks for MySQL and MongoDB so Flask waits for DB to be ready
 
 Acceptance Criteria:
-- [ ] `docker compose up --build` starts all 5 services without errors
-- [ ] MySQL and MongoDB are not reachable from outside the Docker network
-- [ ] Flask can reach MySQL and MongoDB by service name
+- [x] `docker compose up --build` starts all 5 services without errors
+- [x] MySQL and MongoDB are not reachable from outside the Docker network
+- [x] Flask can reach MySQL and MongoDB by service name
 
 ---
 
 ### Task 1.2 — Create Backend Dockerfile
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Base image: `python:3.12-slim`
-- [ ] Copy `requirements.txt` and install dependencies
-- [ ] Copy application code
-- [ ] Set non-root user for the container
-- [ ] Expose port 8080
-- [ ] Entrypoint runs Flask via Gunicorn in production
+- [x] Base image: `python:3.12-slim`
+- [x] Copy `requirements.txt` and install dependencies
+- [x] Copy application code
+- [x] Set non-root user for the container
+- [x] Expose port 8080
+- [x] Entrypoint runs Flask via Gunicorn in production
 
 Acceptance Criteria:
-- [ ] Image builds cleanly with `docker build`
-- [ ] Container starts and Flask is reachable on port 8080
+- [x] Image builds cleanly with `docker build`
+- [x] Container starts and Flask is reachable on port 8080
 
 ---
 
 ### Task 1.3 — Create PII Vault Dockerfile
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Base image: `python:3.12-slim`
-- [ ] Separate `requirements.txt` for vault dependencies
-- [ ] Set non-root user
-- [ ] Expose port 8888
-- [ ] Entrypoint runs vault Flask app via Gunicorn
+- [x] Base image: `python:3.12-slim`
+- [x] Separate `requirements.txt` for vault dependencies
+- [x] Set non-root user
+- [x] Expose port 8888
+- [x] Entrypoint runs vault Flask app via Gunicorn
 
 Acceptance Criteria:
-- [ ] Image builds cleanly
-- [ ] Vault is reachable internally on port 8888
+- [x] Image builds cleanly
+- [x] Vault is reachable internally on port 8888
 
 ---
 
 ### Task 1.4 — Create Frontend Dockerfile
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Stage 1: Node 20 image — runs `npm ci` and `npm run build` to produce `dist/`
-- [ ] Stage 2: Copy `dist/` output for nginx to serve (or include directly in nginx image)
+- [x] Stage 1: Node 20 image — runs `npm ci` and `npm run build` to produce `dist/`
+- [x] Stage 2: Copy `dist/` output for nginx to serve (or include directly in nginx image)
 
 Acceptance Criteria:
-- [ ] `docker build` produces a final image with only the built static files
-- [ ] No `node_modules` in the final image
+- [x] `docker build` produces a final image with only the built static files
+- [x] No `node_modules` in the final image
 
 ---
 
 ### Task 1.5 — Create nginx Configuration
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Serve React `dist/` static files on port 443
-- [ ] Proxy all `/api/*` requests to `flask:8080`
-- [ ] Redirect HTTP (port 80) to HTTPS (port 443)
-- [ ] Add security headers: `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, `Content-Security-Policy`
-- [ ] Rate limiting on `/api/login` and `/api/register`
-- [ ] Self-signed TLS certificate for EC2 IP (no domain)
+- [x] Serve React `dist/` static files on port 443
+- [x] Proxy all `/api/*` requests to `flask:8080`
+- [x] Redirect HTTP (port 80) to HTTPS (port 443)
+- [x] Add security headers: `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, `Content-Security-Policy`
+- [x] Rate limiting on `/api/login` and `/api/register`
+- [x] Self-signed TLS certificate for EC2 IP (no domain)
 
 Acceptance Criteria:
-- [ ] Visiting `http://18.223.111.152` redirects to `https://18.223.111.152`
-- [ ] React app loads over HTTPS
-- [ ] API calls from React reach Flask correctly
+- [x] Visiting `http://18.223.111.152` redirects to `https://18.223.111.152`
+- [x] React app loads over HTTPS
+- [x] API calls from React reach Flask correctly
 
 ---
 
 ### Task 1.6 — Create .env.template
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `FLASK_SECRET_KEY` — used for session signing
-- [ ] `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS` — MySQL connection
-- [ ] `MONGO_URI` — MongoDB connection string
-- [ ] `VAULT_URL` — internal URL of PII vault service (`http://pii_vault:8888`)
-- [ ] `VAULT_SHARED_SECRET` — shared secret for Flask → vault authentication
-- [ ] `VAULT_ENCRYPTION_KEY` — AES-256 key for PII at rest in the vault
-- [ ] `FLASK_ENV` — `development` or `production`
+- [x] `FLASK_SECRET_KEY` — used for session signing
+- [x] `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS` — MySQL connection
+- [x] `MONGO_URI` — MongoDB connection string
+- [x] `VAULT_URL` — internal URL of PII vault service (`http://pii_vault:8888`)
+- [x] `VAULT_SHARED_SECRET` — shared secret for Flask → vault authentication
+- [x] `VAULT_ENCRYPTION_KEY` — AES-256 key for PII at rest in the vault
+- [x] `FLASK_ENV` — `development` or `production`
 
 Acceptance Criteria:
-- [ ] `.env.template` committed to repo with placeholder values only
-- [ ] `.env` is in `.gitignore` and never committed
+- [x] `.env.template` committed to repo with placeholder values only
+- [x] `.env` is in `.gitignore` and never committed
 
 ---
 
@@ -145,50 +145,50 @@ Acceptance Criteria:
 
 ### Task 2.1 — Create MySQL Schema
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `users` table: `user_id` (PK), `username`, `password_hash`, `role`, `email`, `email_verified`, `mfa_secret`, `mfa_enabled`, `failed_login_attempts`, `locked_until`, `created_at`, `last_login`
-- [ ] `participants` table: `participant_id` (PK), `pseudonym_token` (unique, indexed), `user_id` (FK), `trial_id` (FK), `consent_status`, `withdrawal_triggered`, `created_at`
-- [ ] `consent_records` table: `consent_id` (PK), `participant_id` (FK), `trial_id` (FK), `consent_text_version`, `signed_at`, `digital_signature_hash`, `withdrawn_at`
-- [ ] `trials` table: `trial_id` (PK), `title`, `description`, `phase`, `sponsor`, `duration`, `stipend`, `risk_level`, `spots_total`, `spots_enrolled`, `location`, `status`, `created_at`
-- [ ] `audit_logs` table: `log_id` (PK), `user_id` (FK, nullable), `action_type`, `resource_affected`, `outcome`, `ip_address`, `timestamp`, `prev_hash`, `entry_hash`
-- [ ] Write DB init SQL script that runs on first container start
+- [x] `users` table: `user_id` (PK), `username`, `password_hash`, `role`, `email`, `email_verified`, `mfa_secret`, `mfa_enabled`, `failed_login_attempts`, `locked_until`, `created_at`, `last_login`
+- [x] `participants` table: `participant_id` (PK), `pseudonym_token` (unique, indexed), `user_id` (FK), `trial_id` (FK), `consent_status`, `withdrawal_triggered`, `created_at`
+- [x] `consent_records` table: `consent_id` (PK), `participant_id` (FK), `trial_id` (FK), `consent_text_version`, `signed_at`, `digital_signature_hash`, `withdrawn_at`
+- [x] `trials` table: `trial_id` (PK), `title`, `description`, `phase`, `sponsor`, `duration`, `stipend`, `risk_level`, `spots_total`, `spots_enrolled`, `location`, `status`, `created_at`
+- [x] `audit_logs` table: `log_id` (PK), `user_id` (FK, nullable), `action_type`, `resource_affected`, `outcome`, `ip_address`, `timestamp`, `prev_hash`, `entry_hash`
+- [x] Write DB init SQL script that runs on first container start
 
 Acceptance Criteria:
-- [ ] All tables created cleanly on `docker compose up`
-- [ ] Foreign key constraints enforced
-- [ ] `audit_logs` has no UPDATE or DELETE privileges granted to the app DB user
+- [x] All tables created cleanly on `docker compose up`
+- [x] Foreign key constraints enforced
+- [x] `audit_logs` has no UPDATE or DELETE privileges granted to the app DB user
 
 ---
 
 ### Task 2.2 — Create SQLAlchemy Models
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `User` model matching `users` table
-- [ ] `Participant` model matching `participants` table
-- [ ] `ConsentRecord` model matching `consent_records` table
-- [ ] `Trial` model matching `trials` table
-- [ ] `AuditLog` model matching `audit_logs` table (no `update()` or `delete()` methods exposed)
+- [x] `User` model matching `users` table
+- [x] `Participant` model matching `participants` table
+- [x] `ConsentRecord` model matching `consent_records` table
+- [x] `Trial` model matching `trials` table
+- [x] `AuditLog` model matching `audit_logs` table (no `update()` or `delete()` methods exposed)
 
 Acceptance Criteria:
-- [ ] All models import cleanly
-- [ ] Flask can query all models without errors
-- [ ] `AuditLog` model has no delete or update methods
+- [x] All models import cleanly
+- [x] Flask can query all models without errors
+- [x] `AuditLog` model has no delete or update methods
 
 ---
 
 ### Task 2.3 — Create MongoDB Health Telemetry Collection
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Define document schema: `telemetry_id`, `pseudonym_token`, `trial_id`, `measurement_type`, `value`, `unit`, `recorded_at`, `submitted_at`
-- [ ] Create index on `pseudonym_token` for fast lookup
-- [ ] Write a PyMongo helper to insert and query telemetry documents safely
+- [x] Define document schema: `telemetry_id`, `pseudonym_token`, `trial_id`, `measurement_type`, `value`, `unit`, `recorded_at`, `submitted_at`
+- [x] Create index on `pseudonym_token` for fast lookup
+- [x] Write a PyMongo helper to insert and query telemetry documents safely
 
 Acceptance Criteria:
-- [ ] Telemetry documents can be inserted and queried by `pseudonym_token`
-- [ ] No raw participant identity stored in MongoDB — pseudonym token only
+- [x] Telemetry documents can be inserted and queried by `pseudonym_token`
+- [x] No raw participant identity stored in MongoDB — pseudonym token only
 
 ---
 
@@ -196,70 +196,70 @@ Acceptance Criteria:
 
 ### Task 3.1 — Create Flask App Factory
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `backend/app/__init__.py` — `create_app()` factory function
-- [ ] Initialise SQLAlchemy, PyMongo, Flask-WTF (CSRF), and Flask-Limiter extensions
-- [ ] Register blueprints: `auth`, `participant`, `researcher`, `admin`
-- [ ] Load config from environment variables via `backend/config.py`
+- [x] `backend/app/__init__.py` — `create_app()` factory function
+- [x] Initialise SQLAlchemy, PyMongo, Flask-WTF (CSRF), and Flask-Limiter extensions
+- [x] Register blueprints: `auth`, `participant`, `researcher`, `admin`
+- [x] Load config from environment variables via `backend/config.py`
 
 Acceptance Criteria:
-- [ ] `flask run` starts without errors
-- [ ] All blueprints register correctly
-- [ ] CSRF protection active on all state-changing routes
+- [x] `flask run` starts without errors
+- [x] All blueprints register correctly
+- [x] CSRF protection active on all state-changing routes
 
 ---
 
 ### Task 3.2 — Create Config
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `config.py` reads all values from environment variables (no hardcoded secrets)
-- [ ] `DevelopmentConfig` — debug on, relaxed CORS
-- [ ] `ProductionConfig` — debug off, strict settings
-- [ ] Session cookie settings: `SESSION_COOKIE_HTTPONLY=True`, `SESSION_COOKIE_SECURE=True`, `SESSION_COOKIE_SAMESITE='Strict'`, `PERMANENT_SESSION_LIFETIME=1800` (30 min)
+- [x] `config.py` reads all values from environment variables (no hardcoded secrets)
+- [x] `DevelopmentConfig` — debug on, relaxed CORS
+- [x] `ProductionConfig` — debug off, strict settings
+- [x] Session cookie settings: `SESSION_COOKIE_HTTPONLY=True`, `SESSION_COOKIE_SECURE=True`, `SESSION_COOKIE_SAMESITE='Strict'`, `PERMANENT_SESSION_LIFETIME=1800` (30 min)
 
 Acceptance Criteria:
-- [ ] App starts in both dev and prod config without errors
-- [ ] No secret values present in `config.py` — all read from env
+- [x] App starts in both dev and prod config without errors
+- [x] No secret values present in `config.py` — all read from env
 
 ---
 
 ### Task 3.3 — Create Generic Error Handlers
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] 400 handler — returns generic `{"error": "Bad request"}` (no internal detail)
-- [ ] 401 handler — returns `{"error": "Unauthorised"}`
-- [ ] 403 handler — returns `{"error": "Forbidden"}`
-- [ ] 404 handler — returns `{"error": "Not found"}`
-- [ ] 500 handler — returns `{"error": "Internal server error"}` (no stack trace)
+- [x] 400 handler — returns generic `{"error": "Bad request"}` (no internal detail)
+- [x] 401 handler — returns `{"error": "Unauthorised"}`
+- [x] 403 handler — returns `{"error": "Forbidden"}`
+- [x] 404 handler — returns `{"error": "Not found"}`
+- [x] 500 handler — returns `{"error": "Internal server error"}` (no stack trace)
 
 Acceptance Criteria:
-- [ ] No stack traces or internal error details returned to client in any response
-- [ ] All error responses are consistent JSON
+- [x] No stack traces or internal error details returned to client in any response
+- [x] All error responses are consistent JSON
 
 ---
 
 ### Task 3.4 — Create requirements.txt
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `Flask==3.x`
-- [ ] `Flask-SQLAlchemy`
-- [ ] `Flask-WTF` (CSRF)
-- [ ] `Flask-Limiter` (rate limiting)
-- [ ] `PyMySQL` (MySQL driver)
-- [ ] `pymongo` (MongoDB driver)
-- [ ] `bcrypt`
-- [ ] `pyotp` (TOTP MFA)
-- [ ] `cryptography` (AES-256)
-- [ ] `gunicorn` (production WSGI server)
-- [ ] Pin all versions for reproducibility
+- [x] `Flask==3.x`
+- [x] `Flask-SQLAlchemy`
+- [x] `Flask-WTF` (CSRF)
+- [x] `Flask-Limiter` (rate limiting)
+- [x] `PyMySQL` (MySQL driver)
+- [x] `pymongo` (MongoDB driver)
+- [x] `bcrypt`
+- [x] `pyotp` (TOTP MFA)
+- [x] `cryptography` (AES-256)
+- [x] `gunicorn` (production WSGI server)
+- [x] Pin all versions for reproducibility
 
 Acceptance Criteria:
-- [ ] `pip install -r requirements.txt` completes without conflicts
-- [ ] All versions pinned
+- [x] `pip install -r requirements.txt` completes without conflicts
+- [x] All versions pinned
 
 ---
 
