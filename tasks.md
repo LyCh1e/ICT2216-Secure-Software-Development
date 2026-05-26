@@ -30,11 +30,13 @@ A task is done only when:
 - [x] Create `pii_vault/` folder skeleton
 - [x] Create `nginx/` folder skeleton
 - [x] Update root `.gitignore` to cover Python (`__pycache__`, `*.pyc`, `.venv`), env files (`.env`), Docker volumes, and `node_modules`
+- [x] Add `.gitattributes` to enforce LF line endings for cross-platform compatibility (Windows teammates)
 
 Acceptance Criteria:
 - [x] Repo root contains only: `frontend/`, `backend/`, `pii_vault/`, `nginx/`, `docker-compose.yml`, `.env.template`, `tasks.md`, `README.md`
 - [x] `cd frontend && npm run dev` still starts the React dev server
 - [x] No secrets or `.env` files committed
+- [x] Shell scripts and configs use LF line endings on all platforms
 
 ---
 
@@ -685,16 +687,16 @@ Acceptance Criteria:
 
 ### Task 11.1 — Prepare EC2 Instance
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] SSH into EC2 using the provided key and instance details
-- [ ] Update packages: `sudo apt update && sudo apt upgrade -y`
-- [ ] Install Docker: follow official Docker Engine install for Ubuntu
-- [ ] Install Docker Compose plugin
-- [ ] Add the EC2 user to the `docker` group
+- [x] SSH into EC2 using the provided key and instance details
+- [x] Update packages: `sudo apt update && sudo apt upgrade -y`
+- [x] Install Docker: follow official Docker Engine install for Ubuntu
+- [x] Install Docker Compose plugin
+- [x] Add the EC2 user to the `docker` group
 
 Acceptance Criteria:
-- [ ] `docker --version` and `docker compose version` return without error on EC2
+- [x] `docker --version` and `docker compose version` return without error on EC2
 
 ---
 
