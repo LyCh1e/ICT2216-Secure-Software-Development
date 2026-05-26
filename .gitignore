@@ -1,0 +1,40 @@
+# Node
+node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.development
+frontend/.env.production
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Environment — never commit real secrets
+.env
+backend/.env
+pii_vault/.env
+
+# Docker volumes (root-level only)
+/data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# TLS certificates — generate locally, never commit
+nginx/certs/
+
+# Claude
+.claude/

@@ -1,0 +1,119 @@
+services:
+  frontend-build:
+    build: ./frontend
+    volumes:
+      - frontend_dist:/app/dist
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - frontend_dist:/usr/share/nginx/html:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - flask
+      - frontend-build
+    networks:
+      - internal
+    restart: unless-stopped
+
+  flask:
+    build: ./backend
+    expose:
+      - "8080"
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: unless-stopped
+
+  pii_vault:
+    build: ./pii_vault
+    expose:
+      - "8888"
+    env_file:
+      - .env
+    depends_on:
+      vault_db:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    expose:
+      - "3306"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  vault_db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${VAULT_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${VAULT_DB_NAME}
+      MYSQL_USER: ${VAULT_DB_USER}
+      MYSQL_PASSWORD: ${VAULT_DB_PASS}
+    volumes:
+      - vault_db_data:/var/lib/mysql
+      - ./pii_vault/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    expose:
+      - "3306"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${VAULT_MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+    volumes:
+      - mongo_data:/data/db
+    expose:
+      - "27017"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  vault_db_data:
+  mongo_data:
+  frontend_dist:
