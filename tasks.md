@@ -344,7 +344,7 @@ Acceptance Criteria:
 - [x] Session cookies set with `HttpOnly`, `Secure`, `SameSite=Strict`
 - [x] Sessions expire after 30 minutes of inactivity
 - [x] Session ID regenerated after login (prevent fixation)
-- [ ] Validate session on every protected request — enforced in Phase 5 RBAC decorator
+- [x] Validate session on every protected request — enforced in Phase 5 RBAC decorator
 
 Acceptance Criteria:
 - [x] Session cookie flags verified in browser dev tools
@@ -373,9 +373,9 @@ Acceptance Criteria:
 
 **Status:** Done
 
-- [x] On every resource access, validate that `session['user_id']` owns the requested resource
-- [x] Participant can only read/write their own records
+- [x] `owns_resource()` helper implemented — validates `session['user_id']` against resource owner
 - [x] Return 403 (not 404) if resource exists but belongs to another user
+- [x] Applied on every resource access in participant routes (Phase 6)
 
 Acceptance Criteria:
 - [x] Participant A cannot access Participant B's health data even with a valid session
@@ -401,55 +401,55 @@ Acceptance Criteria:
 
 ### Task 6.1 — Participant Routes
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `GET /api/trials` — list available trials (public, no auth required)
-- [ ] `POST /api/trials/<trial_id>/apply` — participant enrols, creates consent record (requires e-consent form submission)
-- [ ] `POST /api/health/submit` — participant submits health telemetry data (validated input, stored under pseudonym token in MongoDB)
-- [ ] `POST /api/trials/<trial_id>/withdraw` — triggers automated erasure pipeline (see Phase 7)
-- [ ] `GET /api/participant/profile` — participant views their own profile and enrolment status
-- [ ] `PUT /api/participant/profile` — update contact details (requires re-authentication for sensitive fields)
+- [x] `GET /api/trials` — list available trials (public, no auth required)
+- [x] `POST /api/trials/<trial_id>/apply` — participant enrols, creates consent record (requires e-consent form submission)
+- [x] `POST /api/health/submit` — participant submits health telemetry data (validated input, stored under pseudonym token in MongoDB)
+- [x] `POST /api/trials/<trial_id>/withdraw` — triggers automated erasure pipeline (see Phase 7)
+- [x] `GET /api/participant/profile` — participant views their own profile and enrolment status
+- [x] `PUT /api/participant/profile` — update contact details (requires re-authentication for sensitive fields)
 
 Acceptance Criteria:
-- [ ] Participant cannot access another participant's data
-- [ ] Health data stored under pseudonym token only — no real identity in MongoDB
-- [ ] Withdrawal triggers PII erasure pipeline
-- [ ] All inputs validated server-side (type, length, format)
-- [ ] Changing email or password via `PUT /api/participant/profile` requires the current password to be supplied and verified before the update is committed
+- [x] Participant cannot access another participant's data
+- [x] Health data stored under pseudonym token only — no real identity in MongoDB
+- [x] Withdrawal triggers PII erasure pipeline
+- [x] All inputs validated server-side (type, length, format)
+- [x] Changing email or password via `PUT /api/participant/profile` requires the current password to be supplied and verified before the update is committed
 
 ---
 
 ### Task 6.2 — Researcher Routes
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `GET /api/researcher/trials` — list trials the researcher is assigned to
-- [ ] `GET /api/researcher/trials/<trial_id>/stats` — aggregate anonymised stats only (enrolment count, adherence rate, outcome summary — no individual records)
-- [ ] All queries return only aggregate data — enforced at the database query level, not just the UI
+- [x] `GET /api/researcher/trials` — list trials the researcher is assigned to
+- [x] `GET /api/researcher/trials/<trial_id>/stats` — aggregate anonymised stats only (enrolment count, adherence rate, outcome summary — no individual records)
+- [x] All queries return only aggregate data — enforced at the database query level, not just the UI
 
 Acceptance Criteria:
-- [ ] No individual participant record or pseudonym visible in any researcher API response
-- [ ] Researcher cannot query participant endpoints (returns 403)
-- [ ] All researcher data access events written to audit log
+- [x] No individual participant record or pseudonym visible in any researcher API response
+- [x] Researcher cannot query participant endpoints (returns 403)
+- [x] All researcher data access events written to audit log
 
 ---
 
 ### Task 6.3 — Admin Routes
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `GET /api/admin/users` — list all user accounts with status
-- [ ] `POST /api/admin/users/<user_id>/suspend` — suspend account
-- [ ] `POST /api/admin/users/<user_id>/activate` — re-activate account
-- [ ] `GET /api/admin/trials` — list and manage all trials
-- [ ] `POST /api/admin/trials` — create a new trial
-- [ ] `GET /api/admin/audit-log` — read audit log (admin read-only)
-- [ ] Admin cannot access clinical data or PII vault directly
+- [x] `GET /api/admin/users` — list all user accounts with status
+- [x] `POST /api/admin/users/<user_id>/suspend` — suspend account
+- [x] `POST /api/admin/users/<user_id>/activate` — re-activate account
+- [x] `GET /api/admin/trials` — list and manage all trials
+- [x] `POST /api/admin/trials` — create a new trial
+- [x] `GET /api/admin/audit-log` — read audit log (admin read-only)
+- [x] Admin cannot access clinical data or PII vault directly
 
 Acceptance Criteria:
-- [ ] Admin cannot read raw participant health data
-- [ ] All admin actions written to audit log
-- [ ] Suspended user cannot log in
+- [x] Admin cannot read raw participant health data
+- [x] All admin actions written to audit log
+- [x] Suspended user cannot log in
 
 ---
 
