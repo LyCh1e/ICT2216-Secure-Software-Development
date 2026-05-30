@@ -356,44 +356,44 @@ Acceptance Criteria:
 
 ### Task 5.1 — Role Enforcement Decorator
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `@require_role('participant')`, `@require_role('researcher')`, `@require_role('admin')` decorator
-- [ ] Applied to every protected route — returns 403 if role does not match
-- [ ] Role read from server-side session — never trusted from request body or headers
+- [x] `@require_role('participant')`, `@require_role('researcher')`, `@require_role('admin')` decorator
+- [x] Applied to every protected route — returns 403 if role does not match
+- [x] Role read from server-side session — never trusted from request body or headers
 
 Acceptance Criteria:
-- [ ] Researcher cannot access participant-only endpoints (returns 403)
-- [ ] Participant cannot access admin endpoints (returns 403)
-- [ ] Unauthenticated requests return 401
+- [x] Researcher cannot access participant-only endpoints (returns 403)
+- [x] Participant cannot access admin endpoints (returns 403)
+- [x] Unauthenticated requests return 401
 
 ---
 
 ### Task 5.2 — IDOR Protection
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] On every resource access, validate that `session['user_id']` owns the requested resource
-- [ ] Participant can only read/write their own records
-- [ ] Return 403 (not 404) if resource exists but belongs to another user
+- [x] On every resource access, validate that `session['user_id']` owns the requested resource
+- [x] Participant can only read/write their own records
+- [x] Return 403 (not 404) if resource exists but belongs to another user
 
 Acceptance Criteria:
-- [ ] Participant A cannot access Participant B's health data even with a valid session
-- [ ] No object ID enumeration possible through error messages
+- [x] Participant A cannot access Participant B's health data even with a valid session
+- [x] No object ID enumeration possible through error messages
 
 ---
 
 ### Task 5.3 — Rate Limiter
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Apply Flask-Limiter to `/api/auth/login`: 10 requests per minute per IP
-- [ ] Apply Flask-Limiter to `/api/auth/register`: 5 requests per minute per IP
-- [ ] Return 429 with generic message when limit exceeded
+- [x] Apply Flask-Limiter to `/api/auth/login`: 10 requests per minute per IP
+- [x] Apply Flask-Limiter to `/api/auth/register`: 5 requests per minute per IP
+- [x] Return 429 with generic message when limit exceeded
 
 Acceptance Criteria:
-- [ ] More than 10 login attempts per minute from same IP returns 429
-- [ ] Rate limit headers present in response
+- [x] More than 10 login attempts per minute from same IP returns 429
+- [x] Rate limit headers present in response
 
 ---
 
@@ -415,6 +415,7 @@ Acceptance Criteria:
 - [ ] Health data stored under pseudonym token only — no real identity in MongoDB
 - [ ] Withdrawal triggers PII erasure pipeline
 - [ ] All inputs validated server-side (type, length, format)
+- [ ] Changing email or password via `PUT /api/participant/profile` requires the current password to be supplied and verified before the update is committed
 
 ---
 
