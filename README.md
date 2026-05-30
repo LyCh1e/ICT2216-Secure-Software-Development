@@ -143,7 +143,7 @@ nginx/
 
 The app is deployed on a school-provided EC2 instance.
 
-**Live URL:** `https://trialguard.net` (self-signed cert — accept the browser warning on first visit)
+**Live URL:** https://18.223.111.152/ (self-signed cert — accept the browser warning on first visit)
 
 ### Pushing a new local build to EC2
 

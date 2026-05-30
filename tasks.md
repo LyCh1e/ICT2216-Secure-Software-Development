@@ -681,7 +681,7 @@ Acceptance Criteria:
 
 **Status:** Done
 
-- [x] Generate self-signed TLS certificate — `nginx/certs/cert.pem` / `key.pem`, CN=trialguard.net, valid through May 2027
+- [x] Generate self-signed TLS certificate — `nginx/certs/cert.pem` / `key.pem`, CN=medi.trialguard.com, valid through May 2027
 - [x] Configure nginx to use the certificate for port 443 — `ssl_protocols TLSv1.2 TLSv1.3; ssl_ciphers HIGH:!aNULL:!MD5`
 - [x] HTTP (port 80) returns 301 redirect to HTTPS
 
@@ -752,15 +752,15 @@ Acceptance Criteria:
 - [x] Upload TLS certs (`nginx/certs/cert.pem` + `key.pem`) — gitignored, pushed via `scp`
 - [x] Run `docker compose up --build -d` — all 7 images built and all containers started
 - [x] Fixed `db-backup` entrypoint: replaced `chmod +x /backup.sh && /backup.sh` with `sh /backup.sh` (`:ro` mount prevents chmod)
-- [x] Fixed nginx/certs dir ownership: Docker had created it as root; fixed with `sudo chown student21:student21`
+- [x] Fixed nginx/certs dir ownership: Docker had created it as root; fixed with `sudo chown <user>:<user>`
 
 Acceptance Criteria:
 - [x] All 7 containers show as healthy/running (`docker compose ps` verified 2026-05-30)
   - flask ✅ healthy | pii_vault ✅ healthy | mysql ✅ healthy | vault_db ✅ healthy | mongodb ✅ healthy | nginx ✅ up | db-backup ✅ up
-- [x] React app loads at `https://trialguard.net` (200 OK, full SPA HTML returned)
+- [x] React app loads at `https://medi.trialguard.com` (200 OK, full SPA HTML returned)
 - [x] HTTP → HTTPS redirect verified (301 on port 80)
 - [x] All security headers present: HSTS, X-Frame-Options DENY, X-Content-Type-Options nosniff, CSP, Referrer-Policy
-- [x] `GET https://trialguard.net/api/health` returns `{"status":"ok"}`
+- [x] `GET https://medi.trialguard.com/api/health` returns `{"status":"ok"}`
 
 ---
 
