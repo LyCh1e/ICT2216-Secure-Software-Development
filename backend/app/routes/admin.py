@@ -1,11 +1,11 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request, session
 
 from app.extensions import db
 from app.middleware import require_role
-from app.models.models import AuditLog, Trial, User
+from app.models.models import AuditLog, ConsentRecord, Participant, Trial, User
 from app.services.audit import write_audit
 
 admin_bp = Blueprint('admin', __name__)
@@ -147,6 +147,70 @@ def create_trial():
     write_audit('trial_create', 'success', user_id=session['user_id'],
                 resource_affected=trial_id, ip_address=_ip())
     return jsonify({'message': 'Trial created.', 'trial_id': trial_id}), 201
+
+
+# ── Compliance report ─────────────────────────────────────────────────────────
+
+@admin_bp.route('/compliance-report', methods=['GET'])
+@require_role('admin')
+def compliance_report():
+    users_by_role = (
+        db.session.query(User.role, db.func.count(User.user_id))
+        .group_by(User.role)
+        .all()
+    )
+    trials_by_status = (
+        db.session.query(Trial.status, db.func.count(Trial.trial_id))
+        .group_by(Trial.status)
+        .all()
+    )
+    trials_by_risk = (
+        db.session.query(Trial.risk_level, db.func.count(Trial.trial_id))
+        .group_by(Trial.risk_level)
+        .all()
+    )
+
+    total_participants   = Participant.query.count()
+    active_participants  = Participant.query.filter_by(consent_status='active').count()
+    withdrawn            = Participant.query.filter_by(consent_status='withdrawn').count()
+    pii_purged           = Participant.query.filter_by(withdrawal_triggered=True).count()
+
+    total_consents  = ConsentRecord.query.count()
+    active_consents = ConsentRecord.query.filter(ConsentRecord.withdrawn_at.is_(None)).count()
+
+    total_audit_events = AuditLog.query.count()
+    failures           = AuditLog.query.filter_by(outcome='failure').count()
+
+    report = {
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+        'users': {
+            'total': sum(c for _, c in users_by_role),
+            'by_role': {role: count for role, count in users_by_role},
+        },
+        'trials': {
+            'total': sum(c for _, c in trials_by_status),
+            'by_status': {s: c for s, c in trials_by_status},
+            'by_risk_level': {r: c for r, c in trials_by_risk},
+        },
+        'participants': {
+            'total':             total_participants,
+            'active':            active_participants,
+            'withdrawn':         withdrawn,
+            'pii_purged':        pii_purged,
+        },
+        'consents': {
+            'total':  total_consents,
+            'active': active_consents,
+        },
+        'audit_log': {
+            'total_events': total_audit_events,
+            'failure_events': failures,
+        },
+    }
+
+    write_audit('compliance_report_export', 'success', user_id=session['user_id'],
+                ip_address=_ip())
+    return jsonify(report), 200
 
 
 # ── Audit log ─────────────────────────────────────────────────────────────────

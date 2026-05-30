@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from config import DevelopmentConfig, ProductionConfig
 from app.extensions import db, mongo, csrf, limiter, cors
 from app.errors import register_error_handlers
@@ -30,5 +30,9 @@ def create_app():
     app.register_blueprint(participant_bp, url_prefix='/api')
     app.register_blueprint(researcher_bp, url_prefix='/api/researcher')
     app.register_blueprint(admin_bp,       url_prefix='/api/admin')
+
+    @app.route('/api/health')
+    def health():
+        return jsonify({'status': 'ok'}), 200
 
     return app
