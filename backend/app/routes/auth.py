@@ -43,7 +43,6 @@ def register():
     username = str(data.get('username', '')).strip()
     email    = str(data.get('email', '')).strip().lower()
     password = str(data.get('password', ''))
-    role     = str(data.get('role', 'participant'))
 
     if not _USERNAME_RE.match(username):
         return jsonify({'error': 'Invalid input.'}), 400
@@ -51,8 +50,6 @@ def register():
         return jsonify({'error': 'Invalid input.'}), 400
     if not _password_ok(password):
         return jsonify({'error': 'Password does not meet complexity requirements.'}), 400
-    if role not in ('participant', 'researcher', 'admin'):
-        return jsonify({'error': 'Invalid input.'}), 400
 
     existing = User.query.filter(
         (User.email == email) | (User.username == username)
@@ -70,7 +67,7 @@ def register():
         username=username,
         email=email,
         password_hash=pw_hash,
-        role=role,
+        role='participant',
         mfa_secret=mfa_secret,
         email_verified=False,
         mfa_enabled=False,

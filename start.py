@@ -35,7 +35,11 @@ def check_prerequisites():
         print("  Start Docker Desktop and try again.")
         sys.exit(1)
 
-    if not shutil.which("docker"):
+    result = subprocess.run(
+        ["docker", "compose", "version"],
+        capture_output=True,
+    )
+    if result.returncode != 0:
         print("ERROR: 'docker compose' plugin not available.")
         sys.exit(1)
 

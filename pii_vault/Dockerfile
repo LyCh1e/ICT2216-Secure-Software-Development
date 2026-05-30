@@ -4,7 +4,7 @@ RUN groupadd -r vaultuser && useradd -r -g vaultuser vaultuser
 
 WORKDIR /vault
 
-COPY requirements.txt .
+COPY pii_vault/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY pii_vault/ .
