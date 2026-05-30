@@ -42,3 +42,4 @@ nginx/certs/
 # Powrshell / SSH Scripts
 *.ps1
 *.sh
+*.pem
