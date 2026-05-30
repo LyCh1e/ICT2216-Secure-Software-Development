@@ -726,20 +726,20 @@ Acceptance Criteria:
 
 ### Task 11.2 — Configure UFW Firewall
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Enable UFW: `sudo ufw enable`
-- [ ] Allow port 22 (SSH — must do first or lose access)
-- [ ] Allow port 80 (HTTP redirect)
-- [ ] Allow port 443 (HTTPS)
-- [ ] Allow port 8080 (Flask direct access for dev/testing)
-- [ ] Allow port 8888 (PII vault — internal only, restrict to localhost if possible)
-- [ ] Deny all other inbound traffic by default
+- [x] Enable UFW: `sudo ufw enable`
+- [x] Allow port 22 (SSH — must do first or lose access)
+- [x] Allow port 80 (HTTP redirect)
+- [x] Allow port 443 (HTTPS)
+- [x] Allow port 8080 (Flask direct access for dev/testing)
+- [x] Allow port 8888 (PII vault — internal only, restrict to localhost if possible)
+- [x] Deny all other inbound traffic by default
 
 Acceptance Criteria:
-- [ ] `sudo ufw status` shows only allowed ports
-- [ ] SSH still works after UFW enabled
-- [ ] MySQL (3306) and MongoDB (27017) not reachable from outside
+- [x] `sudo ufw status` shows only allowed ports
+- [x] SSH still works after UFW enabled
+- [x] MySQL (3306) and MongoDB (27017) not reachable from outside
 
 ---
 
@@ -791,7 +791,7 @@ Acceptance Criteria:
 - [x] PII vault microservice with HMAC-SHA256 pseudonymisation and AES-256-GCM encryption
 - [x] Automated erasure pipeline on participant withdrawal
 - [x] Append-only tamper-evident audit log (SHA-256 hash chain, DB-level INSERT-only grant)
-- [ ] UFW firewall — only ports 22, 80, 443, 8080, 8888 open (EC2 only — not yet configured)
+- [x] UFW firewall — only ports 22, 80, 443, 8080, 8888 open (configured on EC2 2026-05-30)
 - [x] HTTPS enforced via nginx (TLSv1.2/1.3, self-signed cert for EC2 IP, HTTP→HTTPS redirect)
 
 ### Should Have
