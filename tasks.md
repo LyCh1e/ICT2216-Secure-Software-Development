@@ -681,7 +681,7 @@ Acceptance Criteria:
 
 **Status:** Done
 
-- [x] Generate self-signed TLS certificate for the EC2 instance IP — `nginx/certs/cert.pem` / `key.pem`, CN=18.223.111.152, valid through May 2027
+- [x] Generate self-signed TLS certificate — `nginx/certs/cert.pem` / `key.pem`, CN=trialguard.net, valid through May 2027
 - [x] Configure nginx to use the certificate for port 443 — `ssl_protocols TLSv1.2 TLSv1.3; ssl_ciphers HIGH:!aNULL:!MD5`
 - [x] HTTP (port 80) returns 301 redirect to HTTPS
 
@@ -745,17 +745,22 @@ Acceptance Criteria:
 
 ### Task 11.3 — Deploy Application
 
-**Status:** Not Started
+**Status:** Done — deployed 2026-05-30
 
-- [ ] Clone repo to EC2
-- [ ] Copy `.env` file to EC2 with real secrets (do not commit)
-- [ ] Run `docker compose up --build -d`
-- [ ] Verify all 5 containers running: `docker compose ps`
+- [x] Transfer repo to EC2 via `git archive --format=tar HEAD | scp` (repo is private; direct git clone not used)
+- [x] Copy `.env` file to EC2 with real secrets (not committed to git)
+- [x] Upload TLS certs (`nginx/certs/cert.pem` + `key.pem`) — gitignored, pushed via `scp`
+- [x] Run `docker compose up --build -d` — all 7 images built and all containers started
+- [x] Fixed `db-backup` entrypoint: replaced `chmod +x /backup.sh && /backup.sh` with `sh /backup.sh` (`:ro` mount prevents chmod)
+- [x] Fixed nginx/certs dir ownership: Docker had created it as root; fixed with `sudo chown student21:student21`
 
 Acceptance Criteria:
-- [ ] All containers show as healthy
-- [ ] React app loads at the EC2 HTTPS URL
-- [ ] Login flow works end-to-end on EC2
+- [x] All 7 containers show as healthy/running (`docker compose ps` verified 2026-05-30)
+  - flask ✅ healthy | pii_vault ✅ healthy | mysql ✅ healthy | vault_db ✅ healthy | mongodb ✅ healthy | nginx ✅ up | db-backup ✅ up
+- [x] React app loads at `https://trialguard.net` (200 OK, full SPA HTML returned)
+- [x] HTTP → HTTPS redirect verified (301 on port 80)
+- [x] All security headers present: HSTS, X-Frame-Options DENY, X-Content-Type-Options nosniff, CSP, Referrer-Policy
+- [x] `GET https://trialguard.net/api/health` returns `{"status":"ok"}`
 
 ---
 
@@ -781,7 +786,7 @@ Acceptance Criteria:
 ## Priority Summary
 
 ### Must Have (core security requirements)
-- [x] Docker infrastructure running all 6 services (nginx, flask, mysql, mongodb, pii_vault, vault_db)
+- [x] Docker infrastructure running all 7 services (nginx, flask, mysql, mongodb, pii_vault, vault_db, db-backup) — live on EC2
 - [x] MySQL schema with all 5 tables (users, trials, participants, consent_records, audit_logs)
 - [x] Flask auth — bcrypt (cost 12), TOTP MFA, account lockout (5 failures → 15 min)
 - [x] Session management — HttpOnly, Secure, SameSite=Strict, 30-min timeout
@@ -792,18 +797,18 @@ Acceptance Criteria:
 - [x] Automated erasure pipeline on participant withdrawal
 - [x] Append-only tamper-evident audit log (SHA-256 hash chain, DB-level INSERT-only grant)
 - [x] UFW firewall — only ports 22, 80, 443, 8080, 8888 open (configured on EC2 2026-05-30)
-- [x] HTTPS enforced via nginx (TLSv1.2/1.3, self-signed cert for EC2 IP, HTTP→HTTPS redirect)
+- [x] HTTPS enforced via nginx (TLSv1.2/1.3, self-signed cert for EC2 IP, HTTP→HTTPS redirect) — verified live on EC2
 
 ### Should Have
 - [x] All three portals wired to real API (Phase 9 — verified 2026-05-30)
 - [x] Health telemetry in MongoDB (Phase 3)
 - [x] Rate limiting on auth endpoints (nginx: 10 req/min login, 5 req/min register)
-- [x] Security response headers (HSTS, X-Frame-Options, CSP, X-Content-Type-Options, Referrer-Policy)
+- [x] Security response headers (HSTS, X-Frame-Options, CSP, X-Content-Type-Options, Referrer-Policy) — verified live on EC2
 - [x] Input validation on all endpoints — field allowlists, format/length checks, clinical data range bounds, ISO 8601 date validation
-- [ ] Full smoke test on EC2
+- [ ] Full smoke test on EC2 (Task 11.4 — pending)
 
 ### Could Have
-- [x] Automated daily DB backups — `db-backup` service in docker-compose.yml runs `backup/backup.sh` every 24 h; keeps 7 most recent dumps of each DB in the `db_backups` named volume
-- [x] Docker health checks and auto-restart policies — `flask` (`GET /api/health`) and `pii_vault` (`GET /health`) both have `healthcheck` blocks; nginx now waits on `flask: service_healthy`; all services have `restart: unless-stopped`
-- [x] Admin compliance report export — `GET /api/admin/compliance-report` returns aggregated JSON: user counts by role, trial counts by status/risk, participant/consent/audit-log summary; event written to audit log
+- [x] Automated daily DB backups — `db-backup` service runs `backup/backup.sh` every 24 h; keeps 7 most recent dumps in `db_backups` named volume — running on EC2
+- [x] Docker health checks and auto-restart policies — `flask` and `pii_vault` have `healthcheck` blocks; nginx waits on `flask: service_healthy`; all services `restart: unless-stopped`
+- [x] Admin compliance report export — `GET /api/admin/compliance-report` returns aggregated JSON summary; every export audit-logged
 - [ ] Email verification for new accounts

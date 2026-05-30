@@ -141,4 +141,49 @@ nginx/
 
 ## Deployment
 
-The app is deployed on a school-provided EC2 instance. See Phase 11 in `tasks.md` for the full deployment checklist.
+The app is deployed on a school-provided EC2 instance.
+
+**Live URL:** `https://trialguard.net` (self-signed cert — accept the browser warning on first visit)
+
+### Pushing a new local build to EC2
+
+The EC2 instance does not have direct GitHub access, so updates are pushed manually via `git archive` + `scp`.
+
+**Prerequisites:** SSH key and EC2 connection details provided separately by the course coordinator. On Windows, fix key permissions once:
+```powershell
+icacls <path\to\key.pem> /inheritance:r /grant:r "%USERNAME%:F"
+```
+
+```powershell
+# 1. Set variables (Windows PowerShell — fill in your own values)
+$PEM  = "<path\to\key.pem>"
+$HOST = "<user>@<ec2-ip>"
+
+# 2. Create a tarball of the latest commit and upload it
+git archive --format=tar HEAD -o "$env:TEMP\trialguard.tar"
+scp -i $PEM "$env:TEMP\trialguard.tar" "${HOST}:~/trialguard.tar"
+
+# 3. Extract on EC2 (overwrites tracked files; .env and certs are preserved separately)
+ssh -i $PEM $HOST "cd ~/ICT2216-Secure-Software-Development && tar xf ~/trialguard.tar && echo done"
+
+# 4. If docker-compose.yml or nginx config changed, push it directly too:
+scp -i $PEM docker-compose.yml "${HOST}:~/ICT2216-Secure-Software-Development/docker-compose.yml"
+
+# 5. Rebuild and restart only changed services
+ssh -i $PEM $HOST "cd ~/ICT2216-Secure-Software-Development && docker compose up -d --build"
+```
+
+**Certs are not in git** — push them once on a fresh instance:
+```powershell
+# Fix ownership if Docker created the dir as root on first start
+ssh -i $PEM $HOST "sudo chown <user>:<user> ~/ICT2216-Secure-Software-Development/nginx/certs"
+scp -i $PEM nginx\certs\cert.pem "${HOST}:~/ICT2216-Secure-Software-Development/nginx/certs/cert.pem"
+scp -i $PEM nginx\certs\key.pem  "${HOST}:~/ICT2216-Secure-Software-Development/nginx/certs/key.pem"
+```
+
+**`.env` is not in git** — push it once and it persists on EC2:
+```powershell
+scp -i $PEM .env "${HOST}:~/ICT2216-Secure-Software-Development/.env"
+```
+
+See Phase 11 in `tasks.md` for the full deployment checklist.
