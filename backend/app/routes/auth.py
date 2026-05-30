@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import bcrypt
 import pyotp
 from flask import Blueprint, jsonify, request, session
+from flask_wtf.csrf import generate_csrf
 
 from app.extensions import csrf, db, limiter
 from app.models.models import User
@@ -18,6 +19,14 @@ _EMAIL_RE    = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_]{3,64}$')
 _LOCKOUT_ATTEMPTS = 5
 _LOCKOUT_MINUTES  = 15
+
+_REGISTER_FIELDS = frozenset({'username', 'email', 'password'})
+_LOGIN_FIELDS    = frozenset({'identifier', 'password'})
+_MFA_FIELDS      = frozenset({'code'})
+
+
+def _extra_fields(data, allowed):
+    return set(data.keys()) - allowed
 
 
 def _ip():
@@ -34,12 +43,24 @@ def _password_ok(pw):
     )
 
 
+# ── CSRF token endpoint ───────────────────────────────────────────────────────
+
+@auth_bp.route('/csrf-token', methods=['GET'])
+def get_csrf_token():
+    return jsonify({'csrf_token': generate_csrf()}), 200
+
+
 # ── 4.1 Register ─────────────────────────────────────────────────────────────
 
 @auth_bp.route('/register', methods=['POST'])
 @limiter.limit('5 per minute')
 def register():
     data     = request.get_json(silent=True) or {}
+
+    if _extra_fields(data, _REGISTER_FIELDS):
+        write_audit('unexpected_input', 'failure', ip_address=_ip())
+        return jsonify({'error': 'Invalid input.'}), 400
+
     username = str(data.get('username', '')).strip()
     email    = str(data.get('email', '')).strip().lower()
     password = str(data.get('password', ''))
@@ -84,7 +105,12 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 @limiter.limit('10 per minute')
 def login():
-    data       = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True) or {}
+
+    if _extra_fields(data, _LOGIN_FIELDS):
+        write_audit('unexpected_input', 'failure', ip_address=_ip())
+        return jsonify({'error': 'Invalid input.'}), 400
+
     identifier = str(data.get('identifier', '')).strip()
     password   = str(data.get('password', ''))
     ip         = _ip()
@@ -131,6 +157,11 @@ def verify_mfa():
         return jsonify({'error': 'No pending MFA session.'}), 401
 
     data = request.get_json(silent=True) or {}
+
+    if _extra_fields(data, _MFA_FIELDS):
+        write_audit('unexpected_input', 'failure', ip_address=_ip())
+        return jsonify({'error': 'Invalid input.'}), 400
+
     code = str(data.get('code', '')).strip()
     ip   = _ip()
 

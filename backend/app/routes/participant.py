@@ -14,7 +14,33 @@ from app.services.vault import create_pii, erase_pii
 
 participant_bp = Blueprint('participant', __name__)
 
-_EMAIL_RE = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+_EMAIL_RE  = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+_DT_RE     = re.compile(r'^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}')
+
+_PROFILE_FIELDS = frozenset({'email', 'password', 'current_password'})
+_APPLY_FIELDS   = frozenset({'consent_text_version', 'digital_signature'})
+_HEALTH_FIELDS  = frozenset({'measurement_type', 'value', 'unit', 'recorded_at'})
+
+# Allowed measurement types and their (min, max) inclusive value ranges
+_MEASUREMENT_RANGES = {
+    'blood_pressure_systolic':  (40,   300),
+    'blood_pressure_diastolic': (20,   200),
+    'heart_rate':               (20,   300),
+    'temperature_celsius':      (30.0, 45.0),
+    'weight_kg':                (1.0,  500.0),
+    'height_cm':                (30,   300),
+    'blood_glucose_mmol':       (0.5,  100.0),
+    'oxygen_saturation':        (50.0, 100.0),
+    'respiratory_rate':         (5,    100),
+}
+
+_UNIT_MAX_LEN            = 32
+_CONSENT_VERSION_MAX_LEN = 64
+_DIGITAL_SIG_MAX_LEN     = 512
+
+
+def _extra_fields(data, allowed):
+    return set(data.keys()) - allowed
 
 
 def _ip():
@@ -80,8 +106,13 @@ def get_profile():
 @participant_bp.route('/participant/profile', methods=['PUT'])
 @require_role('participant')
 def update_profile():
-    data     = request.get_json(silent=True) or {}
-    user     = db.session.get(User, session['user_id'])
+    data = request.get_json(silent=True) or {}
+
+    if _extra_fields(data, _PROFILE_FIELDS):
+        write_audit('unexpected_input', 'failure', user_id=session['user_id'], ip_address=_ip())
+        return jsonify({'error': 'Invalid input.'}), 400
+
+    user         = db.session.get(User, session['user_id'])
     new_email    = data.get('email')
     new_password = data.get('password')
 
@@ -122,6 +153,10 @@ def apply_to_trial(trial_id):
     data    = request.get_json(silent=True) or {}
     user_id = session['user_id']
 
+    if _extra_fields(data, _APPLY_FIELDS):
+        write_audit('unexpected_input', 'failure', user_id=user_id, ip_address=_ip())
+        return jsonify({'error': 'Invalid input.'}), 400
+
     trial = db.session.get(Trial, trial_id)
     if not trial or trial.status != 'recruiting':
         return jsonify({'error': 'Trial not available.'}), 404
@@ -139,6 +174,10 @@ def apply_to_trial(trial_id):
         write_audit('consent_submit', 'failure', user_id=user_id,
                     resource_affected=trial_id, ip_address=_ip())
         return jsonify({'error': 'Consent form must be completed.'}), 400
+    if len(consent_version) > _CONSENT_VERSION_MAX_LEN or len(digital_sig) > _DIGITAL_SIG_MAX_LEN:
+        write_audit('consent_submit', 'failure', user_id=user_id,
+                    resource_affected=trial_id, ip_address=_ip())
+        return jsonify({'error': 'Invalid input.'}), 400
 
     user  = db.session.get(User, user_id)
     token = create_pii(user_id=user_id, email=user.email)
@@ -182,6 +221,10 @@ def submit_health():
     data    = request.get_json(silent=True) or {}
     user_id = session['user_id']
 
+    if _extra_fields(data, _HEALTH_FIELDS):
+        write_audit('unexpected_input', 'failure', user_id=user_id, ip_address=_ip())
+        return jsonify({'error': 'Invalid input.'}), 400
+
     participant = Participant.query.filter_by(
         user_id=user_id, consent_status='active'
     ).first()
@@ -200,6 +243,21 @@ def submit_health():
 
     if not measurement_type or not unit or not recorded_at:
         return jsonify({'error': 'Invalid input.'}), 400
+
+    # Validate measurement type against whitelist
+    if measurement_type not in _MEASUREMENT_RANGES:
+        return jsonify({'error': 'Invalid measurement type.'}), 400
+
+    # Validate value is within clinically acceptable range for this measurement
+    lo, hi = _MEASUREMENT_RANGES[measurement_type]
+    if not (lo <= value <= hi):
+        return jsonify({'error': 'Value out of acceptable range.'}), 400
+
+    # Validate unit length and recorded_at format
+    if len(unit) > _UNIT_MAX_LEN:
+        return jsonify({'error': 'Invalid input.'}), 400
+    if not _DT_RE.match(recorded_at):
+        return jsonify({'error': 'Invalid recorded_at format. Use ISO 8601 (YYYY-MM-DDTHH:MM:SS).'}), 400
 
     mongo.db.health_telemetry.insert_one({
         'pseudonym_token':  participant.pseudonym_token,

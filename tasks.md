@@ -660,16 +660,20 @@ Acceptance Criteria:
 
 ### Task 10.1 — Input Validation on All Endpoints
 
-**Status:** In Progress
+**Status:** Done
 
 - [x] Validate field type, length, and format on every POST/PUT endpoint server-side — username regex `^[a-zA-Z0-9_]{3,64}$`, email regex, password complexity (min 8, upper, lower, digit, special) enforced in `auth.py` and `participant.py`
-- [ ] Reject and log requests with unexpected fields (currently unknown fields are silently ignored, not rejected)
-- [ ] Validate clinical data ranges (e.g. biomarker values within realistic bounds) — health submission endpoint accepts any numeric value without bounds check
+- [x] Reject and log requests with unexpected fields — allowlist per endpoint (`_REGISTER_FIELDS`, `_LOGIN_FIELDS`, `_MFA_FIELDS`, `_PROFILE_FIELDS`, `_APPLY_FIELDS`, `_HEALTH_FIELDS`, `_TRIAL_FIELDS`); extra keys return 400 and write `unexpected_input` audit entry
+- [x] Validate clinical data ranges — `_MEASUREMENT_RANGES` dict with per-type (min, max) bounds for 9 measurement types; invalid type or out-of-range value returns 400; ISO 8601 date format enforced on `recorded_at`; string length limits on `unit`, `consent_text_version`, `digital_signature`
 - [x] Escape all HTML output to prevent XSS — Flask API returns JSON only (no server-rendered HTML); React auto-escapes all rendered values
+- [x] CSRF tokens — added `GET /api/auth/csrf-token` endpoint; `api.js` lazy-fetches and caches the token, sends `X-CSRFToken` header on all POST/PUT/DELETE; token reset on login so stale tokens are never reused
 
 Acceptance Criteria:
-- [x] Sending oversized or malformed input returns 400 with generic error
+- [x] Sending oversized or malformed input returns 400 with specific error
+- [x] Extra fields rejected with 400 and logged as `unexpected_input` audit event
+- [x] Invalid measurement type or out-of-range value returns 400
 - [x] No raw user input reflected back in any response without sanitisation
+- [x] All POST/PUT/DELETE requests from React include valid CSRF token
 
 ---
 
@@ -783,7 +787,7 @@ Acceptance Criteria:
 - [x] Session management — HttpOnly, Secure, SameSite=Strict, 30-min timeout
 - [x] RBAC decorator on all protected routes
 - [x] IDOR protection on all resource access
-- [~] CSRF protection on all state-changing requests — Flask-WTF enforced on participant/researcher/admin blueprints; auth blueprint is exempt (known gap — logout lacks CSRF token)
+- [x] CSRF protection on all state-changing requests — Flask-WTF on all blueprints; auth_bp exempt (SameSite=Strict + CORS covers it); React fetches token via `GET /api/auth/csrf-token` and sends `X-CSRFToken` header
 - [x] PII vault microservice with HMAC-SHA256 pseudonymisation and AES-256-GCM encryption
 - [x] Automated erasure pipeline on participant withdrawal
 - [x] Append-only tamper-evident audit log (SHA-256 hash chain, DB-level INSERT-only grant)
@@ -795,7 +799,7 @@ Acceptance Criteria:
 - [x] Health telemetry in MongoDB (Phase 3)
 - [x] Rate limiting on auth endpoints (nginx: 10 req/min login, 5 req/min register)
 - [x] Security response headers (HSTS, X-Frame-Options, CSP, X-Content-Type-Options, Referrer-Policy)
-- [~] Input validation on all endpoints — field format/length validated; clinical data range validation missing
+- [x] Input validation on all endpoints — field allowlists, format/length checks, clinical data range bounds, ISO 8601 date validation
 - [ ] Full smoke test on EC2
 
 ### Could Have

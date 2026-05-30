@@ -10,6 +10,20 @@ from app.services.audit import write_audit
 
 admin_bp = Blueprint('admin', __name__)
 
+_TRIAL_FIELDS = frozenset({
+    'title', 'description', 'phase', 'sponsor', 'duration',
+    'stipend', 'risk_level', 'spots_total', 'location',
+})
+
+_FIELD_MAX_LENS = {
+    'title': 255, 'phase': 32, 'sponsor': 255,
+    'duration': 64, 'stipend': 64, 'location': 255,
+}
+
+
+def _extra_fields(data, allowed):
+    return set(data.keys()) - allowed
+
 
 def _ip():
     return request.headers.get('X-Forwarded-For', request.remote_addr)
@@ -91,11 +105,19 @@ def list_trials():
 def create_trial():
     data = request.get_json(silent=True) or {}
 
+    if _extra_fields(data, _TRIAL_FIELDS):
+        write_audit('unexpected_input', 'failure', user_id=session['user_id'], ip_address=_ip())
+        return jsonify({'error': 'Invalid input.'}), 400
+
     required = ['title', 'description', 'phase', 'sponsor', 'duration', 'risk_level',
                 'spots_total', 'location']
     for field in required:
         if not str(data.get(field, '')).strip():
             return jsonify({'error': f'Missing required field: {field}'}), 400
+
+    for field, max_len in _FIELD_MAX_LENS.items():
+        if field in data and len(str(data[field])) > max_len:
+            return jsonify({'error': f'Field {field} exceeds maximum length.'}), 400
 
     if data['risk_level'] not in ('minimal', 'low', 'medium', 'high'):
         return jsonify({'error': 'Invalid risk_level.'}), 400
