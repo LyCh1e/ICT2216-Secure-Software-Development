@@ -129,11 +129,7 @@ services:
   db-backup:
     image: mysql:8.0
     entrypoint: >
-      sh -c "chmod +x /backup.sh &&
-             while true; do
-               /backup.sh;
-               sleep 86400;
-             done"
+      sh -c "while true; do sh /backup.sh; sleep 86400; done"
     env_file:
       - .env
     volumes:
