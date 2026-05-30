@@ -38,3 +38,7 @@ nginx/certs/
 
 # Claude
 .claude/
+
+# Powrshell / SSH Scripts
+*.ps1
+*.sh
