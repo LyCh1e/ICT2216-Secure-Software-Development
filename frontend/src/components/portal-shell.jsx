@@ -1,13 +1,24 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Icon, TgLogo } from './shared'
+import { api } from '../api'
+import { useAuth } from '../context/AuthContext'
 
 export function PortalTopbar({ role, who, search = true }) {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
   const roleLabel = { patient: 'PATIENT', admin: 'ADMIN', researcher: 'RESEARCHER' }[role]
   const initials = who.split(/[-\s]/).slice(0, 2).map(s => s[0]).join('').toUpperCase()
+
+  async function handleLogout() {
+    try { await api.post('/api/auth/logout') } catch { /* session may already be gone */ }
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="pa-topbar">
       <div className="pa-topbar-left">
-        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}><TgLogo size={20}/></Link>
+        <a href="/" style={{ textDecoration: 'none', color: 'inherit' }}><TgLogo size={20}/></a>
         <span className={'pa-role-chip ' + role}>
           <span style={{ width: 6, height: 6, borderRadius: 50, background: 'currentColor' }}></span>
           {roleLabel}
@@ -23,11 +34,11 @@ export function PortalTopbar({ role, who, search = true }) {
         )}
         <button className="pa-iconbtn" title="Notifications"><Icon name="bell" size={16}/></button>
         <button className="pa-iconbtn" title="Help"><Icon name="help" size={16}/></button>
-        <Link to="/login" className="pa-iconbtn" title="Sign out" style={{ textDecoration: 'none' }}><Icon name="lock" size={16}/></Link>
+        <button className="pa-iconbtn" title="Sign out" onClick={handleLogout}><Icon name="lock" size={16}/></button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 12, borderLeft: '1px solid var(--line)' }}>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 12, fontWeight: 500 }}>{who}</div>
-            <div className="pa-mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>{role === 'patient' ? 'pseudonym' : role === 'admin' ? 'admin · L2' : 'cohort lead'}</div>
+            <div className="pa-mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>{role === 'patient' ? 'participant' : role === 'admin' ? 'admin · L2' : 'cohort lead'}</div>
           </div>
           <div className={'pa-avatar ' + role}>{initials.slice(0, 2)}</div>
         </div>

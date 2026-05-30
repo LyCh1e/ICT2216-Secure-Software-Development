@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Icon, TgLogo } from '../components/shared'
+import { api } from '../api'
+import { useAuth } from '../context/AuthContext'
 
 function AuthFrame({ children, brand }) {
   return (
@@ -60,32 +62,48 @@ function AuthField({ label, type = 'text', value, onChange, placeholder, help, e
   )
 }
 
+const ROLE_PATHS = { participant: '/patient', researcher: '/researcher', admin: '/admin' }
+
 export default function Login() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [id, setId] = useState('')
   const [pass, setPass] = useState('')
   const [twoFa, setTwoFa] = useState('')
   const [stage, setStage] = useState('creds')
   const [err, setErr] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const isPseudo = /^PT-[A-F0-9]{4}-[A-Z0-9]{2}$/i.test(id.trim())
-  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id.trim())
-
-  function submitCreds(e) {
+  async function submitCreds(e) {
     e?.preventDefault?.()
-    if (!id.trim()) { setErr('Enter your email or pseudonym ID.'); return }
-    if (!isPseudo && !isEmail) { setErr('That doesn\'t look like an email or a pseudonym ID (PT-XXXX-XX).'); return }
+    if (!id.trim()) { setErr('Enter your email or username.'); return }
     if (!pass) { setErr('Password is required.'); return }
     setErr('')
-    setStage('2fa')
+    setLoading(true)
+    try {
+      await api.post('/api/auth/login', { identifier: id.trim(), password: pass })
+      setStage('2fa')
+    } catch (ex) {
+      setErr(ex.status === 429 ? 'Too many attempts — wait a minute and try again.' : 'Invalid credentials.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  function submit2fa(e) {
+  async function submit2fa(e) {
     e?.preventDefault?.()
     if (!/^\d{6}$/.test(twoFa.trim())) { setErr('Enter the 6-digit code from your authenticator.'); return }
     setErr('')
-    if (isPseudo) { navigate('/patient'); return }
-    setStage('pick')
+    setLoading(true)
+    try {
+      const data = await api.post('/api/auth/verify-mfa', { code: twoFa.trim() })
+      login(data.role, id.trim())
+      navigate(ROLE_PATHS[data.role] ?? '/login', { replace: true })
+    } catch (ex) {
+      setErr(ex.status === 429 ? 'Too many attempts — wait a minute and try again.' : 'Invalid or expired MFA code.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -99,7 +117,7 @@ export default function Login() {
             <div className="pa-mono" style={{ fontSize: 11, letterSpacing: '0.1em', color: 'var(--ink-3)' }}>WHO SIGNS IN HERE</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 0', display: 'grid', gap: 10, fontSize: 13, color: 'var(--ink-2)' }}>
               {[
-                ['users', 'Patients', 'with a pseudonym ID + passphrase'],
+                ['users', 'Patients', 'with a username + password'],
                 ['shield', 'Admins', 'with a work email + password'],
                 ['pill', 'Researchers', 'with a work email + password'],
               ].map(([icn, who, how]) => (
@@ -118,7 +136,7 @@ export default function Login() {
             </div>
           </div>
           <div className="pa-mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.06em' }}>
-            NEW PATIENT? <Link className="pa-link" to="/signup">CREATE A PSEUDONYM →</Link>
+            NEW PATIENT? <Link className="pa-link" to="/signup">CREATE AN ACCOUNT →</Link>
           </div>
         </>
       )}
@@ -129,89 +147,51 @@ export default function Login() {
             Sign in to TrialGuard.
           </h1>
           <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 28px' }}>
-            Patients sign in with a pseudonym ID. Staff sign in with a work email. Same screen for everyone.
+            Sign in with your email or username. MFA required for all accounts.
           </p>
           <AuthField
-            label="Email or pseudonym ID"
+            label="Email or username"
             value={id}
             onChange={(v) => { setId(v); setErr('') }}
-            placeholder="you@email.com  ·  or  ·  PT-XXXX-XX"
-            mono={isPseudo}
-            right={id && (
-              <span className="pa-mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
-                {isPseudo ? 'patient' : isEmail ? 'staff' : ''}
-              </span>
-            )}
+            placeholder="you@email.com  ·  or  ·  your_username"
           />
           <AuthField
-            label={isPseudo ? 'Passphrase' : 'Password'}
+            label="Password"
             type="password"
             value={pass}
             onChange={(v) => { setPass(v); setErr('') }}
             placeholder="••••••••••"
-            right={<a className="pa-link" style={{ fontSize: 12 }}>Forgot?</a>}
             error={err}
           />
-          <button className="pa-btn pa-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 16px', marginTop: 4 }} type="submit">
-            Continue <Icon name="arrow" size={14}/>
+          <button
+            className="pa-btn pa-btn-primary"
+            style={{ width: '100%', justifyContent: 'center', padding: '12px 16px', marginTop: 4 }}
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? 'Checking…' : <><span>Continue</span> <Icon name="arrow" size={14}/></>}
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0', color: 'var(--ink-3)', fontSize: 12 }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--line)' }}></div>
-            OR
-            <div style={{ flex: 1, height: 1, background: 'var(--line)' }}></div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <button type="button" className="pa-btn pa-btn-ghost" style={{ justifyContent: 'center' }}>
-              <Icon name="lock" size={14}/> Hardware key
-            </button>
-            <button type="button" className="pa-btn pa-btn-ghost" style={{ justifyContent: 'center' }}>
-              <Icon name="bldg" size={14}/> SSO
-            </button>
-          </div>
           <div style={{ fontSize: 13, color: 'var(--ink-3)', textAlign: 'center', marginTop: 22 }}>
-            New to TrialGuard? <Link className="pa-link" to="/signup">Create a pseudonym →</Link>
+            New to TrialGuard? <Link className="pa-link" to="/signup">Create an account →</Link>
           </div>
         </form>
       )}
 
-      {stage === 'pick' && (
-        <div>
-          <h1 style={{ fontFamily: 'Instrument Serif, serif', fontSize: 36, lineHeight: 1.1, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
-            Open your console.
-          </h1>
-          <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 24px' }}>
-            Your account has access to multiple consoles in this demo. Pick where to land.
-          </p>
-          <div style={{ display: 'grid', gap: 10 }}>
-            <Link to="/admin" className="pa-btn pa-btn-ink" style={{ justifyContent: 'space-between', padding: '14px 18px', textDecoration: 'none' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="shield" size={16}/> <strong>Admin console</strong>
-              </span>
-              <Icon name="arrow" size={14}/>
-            </Link>
-            <Link to="/researcher" className="pa-btn pa-btn-primary" style={{ justifyContent: 'space-between', padding: '14px 18px', background: 'var(--coral)', textDecoration: 'none' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="users" size={16}/> <strong>Researcher console</strong>
-              </span>
-              <Icon name="arrow" size={14}/>
-            </Link>
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--ink-3)', textAlign: 'center', marginTop: 18 }}>
-            Wrong session? <Link className="pa-link" to="/login">Start over</Link>
-          </div>
-        </div>
-      )}
-
       {stage === '2fa' && (
         <form onSubmit={submit2fa} noValidate>
-          <button type="button" className="pa-btn pa-btn-link" style={{ marginBottom: 16, padding: '4px 6px', marginLeft: -6 }} onClick={() => { setStage('creds'); setErr('') }}>
+          <button
+            type="button"
+            className="pa-btn pa-btn-link"
+            style={{ marginBottom: 16, padding: '4px 6px', marginLeft: -6 }}
+            onClick={() => { setStage('creds'); setErr('') }}
+          >
             ← Back
           </button>
           <h1 style={{ fontFamily: 'Instrument Serif, serif', fontSize: 36, lineHeight: 1.1, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
             Two-factor required.
           </h1>
           <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 24px' }}>
-            We've pushed a 6-digit code to your authenticator app for <span className="pa-mono">{id}</span>.
+            Enter the 6-digit code from your authenticator app for <span className="pa-mono">{id}</span>.
           </p>
           <AuthField
             label="Authenticator code"
@@ -222,12 +202,14 @@ export default function Login() {
             error={err}
             help="Code expires in 30 seconds."
           />
-          <button className="pa-btn pa-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 16px' }} type="submit">
-            Sign in <Icon name="arrow" size={14}/>
+          <button
+            className="pa-btn pa-btn-primary"
+            style={{ width: '100%', justifyContent: 'center', padding: '12px 16px' }}
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? 'Verifying…' : <><span>Sign in</span> <Icon name="arrow" size={14}/></>}
           </button>
-          <div style={{ fontSize: 12, color: 'var(--ink-3)', textAlign: 'center', marginTop: 16 }}>
-            Lost access to your authenticator? <a className="pa-link">Use a backup code →</a>
-          </div>
         </form>
       )}
     </AuthFrame>

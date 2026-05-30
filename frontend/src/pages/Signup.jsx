@@ -1,6 +1,7 @@
 import { useState, Fragment } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Icon, TgLogo } from '../components/shared'
+import { api } from '../api'
 
 function AuthFrame({ children, brand }) {
   return (
@@ -40,13 +41,10 @@ function AuthFrame({ children, brand }) {
   )
 }
 
-function AuthField({ label, type = 'text', value, onChange, placeholder, help, error, right, mono }) {
+function AuthField({ label, type = 'text', value, onChange, placeholder, help, error, mono }) {
   return (
     <div className="pa-field" style={{ marginBottom: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <label className="pa-label">{label}</label>
-        {right}
-      </div>
+      <label className="pa-label">{label}</label>
       <input
         className={'pa-input' + (mono ? ' pa-mono' : '') + (error ? ' error' : '')}
         type={type}
@@ -61,15 +59,18 @@ function AuthField({ label, type = 'text', value, onChange, placeholder, help, e
 }
 
 export default function Signup() {
+  const navigate = useNavigate()
   const [step, setStep] = useState(1)
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
-  const [emailErr, setEmailErr] = useState('')
+  const [step1Err, setStep1Err] = useState('')
   const [pass, setPass] = useState('')
   const [pass2, setPass2] = useState('')
   const [passErr, setPassErr] = useState('')
   const [agree, setAgree] = useState(false)
-
-  const PSEUDONYM = 'PT-4F8A-2K'
+  const [loading, setLoading] = useState(false)
+  const [totpUri, setTotpUri] = useState('')
+  const [totpSecret, setTotpSecret] = useState('')
 
   function strength(p) {
     let s = 0
@@ -84,19 +85,54 @@ export default function Signup() {
   const sLabel = ['Too short', 'Weak', 'Okay', 'Good', 'Strong', 'Excellent'][sLevel]
   const sColor = ['var(--line-2)', '#C75A57', '#D8A24A', 'var(--coral)', 'var(--sage)', 'var(--sage-2)'][sLevel]
 
-  function next() {
+  function validateStep1() {
+    if (!/^[a-zA-Z0-9_]{3,64}$/.test(username.trim())) {
+      setStep1Err('Username must be 3–64 characters: letters, numbers, underscores only.')
+      return false
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setStep1Err('Please enter a valid email address.')
+      return false
+    }
+    setStep1Err('')
+    return true
+  }
+
+  async function next() {
     if (step === 1) {
-      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
-      if (!ok) { setEmailErr('Please enter a valid email — used only to deliver your pseudonym.'); return }
-      setEmailErr('')
+      if (!validateStep1()) return
       setStep(2)
     } else if (step === 2) {
-      if (sLevel < 3) { setPassErr('Choose a stronger passphrase — 12+ characters with letters, numbers, and a symbol.'); return }
-      if (pass !== pass2) { setPassErr('Passphrases don\'t match.'); return }
+      if (sLevel < 3) { setPassErr('Choose a stronger password — 12+ characters with letters, numbers, and a symbol.'); return }
+      if (pass !== pass2) { setPassErr('Passwords don\'t match.'); return }
       if (!agree) { setPassErr('You must agree to the privacy terms.'); return }
       setPassErr('')
-      setStep(3)
+      setLoading(true)
+      try {
+        const data = await api.post('/api/auth/register', {
+          username: username.trim(),
+          email: email.trim().toLowerCase(),
+          password: pass,
+        })
+        const uri = data.totp_uri || ''
+        setTotpUri(uri)
+        try {
+          const secret = new URL(uri).searchParams.get('secret') || ''
+          setTotpSecret(secret)
+        } catch {
+          setTotpSecret('')
+        }
+        setStep(3)
+      } catch (ex) {
+        setPassErr(ex.message || 'Registration failed. Please try again.')
+      } finally {
+        setLoading(false)
+      }
     }
+  }
+
+  function copySecret() {
+    navigator.clipboard.writeText(totpSecret).catch(() => {})
   }
 
   return (
@@ -108,7 +144,7 @@ export default function Signup() {
           </div>
           <div style={{ display: 'grid', gap: 12, maxWidth: 360 }}>
             {[
-              ['Pseudonymous by default', 'Researchers see PT-XXXX-XX. We hold the rest in an encrypted vault.'],
+              ['Pseudonymous by default', 'Researchers see only a token. We hold your identity in an encrypted vault.'],
               ['Granular consent', 'Approve every shared data point, study by study.'],
               ['Reversible', 'Withdraw at any time. We delete what you ask us to.'],
             ].map(([t, s]) => (
@@ -124,7 +160,7 @@ export default function Signup() {
             ))}
           </div>
           <div style={{ fontFamily: 'Geist Mono, monospace', fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.06em' }}>
-            142 ACTIVE TRIALS · 38K PSEUDONYMOUS PARTICIPANTS
+            SECURE · PSEUDONYMOUS · CONSENT-FIRST
           </div>
         </>
       )}
@@ -147,32 +183,39 @@ export default function Signup() {
           ))}
         </div>
         <div className="pa-mono" style={{ fontSize: 11, letterSpacing: '0.1em', color: 'var(--ink-3)', marginTop: 10 }}>
-          STEP {step} OF 3 · {['EMAIL', 'PASSPHRASE', 'PSEUDONYM'][step - 1]}
+          STEP {step} OF 3 · {['ACCOUNT', 'PASSWORD', 'AUTHENTICATOR'][step - 1]}
         </div>
       </div>
 
       {step === 1 && (
         <>
           <h1 style={{ fontFamily: 'Instrument Serif, serif', fontSize: 38, lineHeight: 1.1, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
-            Start with just an email.
+            Create your account.
           </h1>
           <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 24px' }}>
-            We use it only to deliver your pseudonym ID. Never shared with researchers, never used for marketing.
+            Your email is used only for account recovery. Researchers never see it.
           </p>
+          <AuthField
+            label="Username"
+            value={username}
+            onChange={(v) => { setUsername(v); setStep1Err('') }}
+            placeholder="your_username"
+            help="3–64 characters, letters, numbers, underscores."
+          />
           <AuthField
             label="Email"
             type="email"
             value={email}
-            onChange={setEmail}
+            onChange={(v) => { setEmail(v); setStep1Err('') }}
             placeholder="you@anymail.com"
-            error={emailErr}
-            help="A throwaway email is fine — it's only used to verify your sign-up."
+            error={step1Err}
+            help={!step1Err ? 'A throwaway email is fine — never shared with researchers.' : undefined}
           />
           <button className="pa-btn pa-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 16px', marginTop: 8 }} onClick={next}>
             Continue <Icon name="arrow" size={14}/>
           </button>
           <div style={{ fontSize: 13, color: 'var(--ink-3)', textAlign: 'center', marginTop: 18 }}>
-            Already have a pseudonym? <Link className="pa-link" to="/login">Sign in →</Link>
+            Already have an account? <Link className="pa-link" to="/login">Sign in →</Link>
           </div>
         </>
       )}
@@ -180,13 +223,13 @@ export default function Signup() {
       {step === 2 && (
         <>
           <h1 style={{ fontFamily: 'Instrument Serif, serif', fontSize: 38, lineHeight: 1.1, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
-            Set a passphrase.
+            Set a password.
           </h1>
           <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 24px' }}>
-            Your passphrase derives the encryption key for your identity vault. <strong>We cannot recover it</strong> — write it down somewhere safe.
+            Use at least 12 characters with upper, lower, a number, and a symbol. <strong>Write it down somewhere safe.</strong>
           </p>
           <AuthField
-            label="Passphrase"
+            label="Password"
             type="password"
             value={pass}
             onChange={(v) => { setPass(v); setPassErr('') }}
@@ -203,7 +246,7 @@ export default function Signup() {
             </div>
           )}
           <AuthField
-            label="Confirm passphrase"
+            label="Confirm password"
             type="password"
             value={pass2}
             onChange={(v) => { setPass2(v); setPassErr('') }}
@@ -212,12 +255,17 @@ export default function Signup() {
           />
           <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: 'var(--ink-2)', cursor: 'pointer', margin: '4px 0 18px' }}>
             <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} style={{ marginTop: 3, accentColor: 'var(--sage)' }}/>
-            <span>I understand my passphrase cannot be recovered, and I agree to the <span className="pa-link">privacy</span> and <span className="pa-link">terms</span>.</span>
+            <span>I agree to the <span className="pa-link">privacy policy</span> and <span className="pa-link">terms of service</span>.</span>
           </label>
           <div style={{ display: 'flex', gap: 10 }}>
             <button className="pa-btn pa-btn-ghost" onClick={() => setStep(1)}>Back</button>
-            <button className="pa-btn pa-btn-primary" style={{ flex: 1, justifyContent: 'center', padding: '12px 16px' }} onClick={next}>
-              Create my pseudonym <Icon name="arrow" size={14}/>
+            <button
+              className="pa-btn pa-btn-primary"
+              style={{ flex: 1, justifyContent: 'center', padding: '12px 16px' }}
+              onClick={next}
+              disabled={loading}
+            >
+              {loading ? 'Creating account…' : <><span>Create account</span> <Icon name="arrow" size={14}/></>}
             </button>
           </div>
         </>
@@ -225,38 +273,34 @@ export default function Signup() {
 
       {step === 3 && (
         <>
-          <span className="pa-pill success" style={{ marginBottom: 16 }}><span className="dot"></span>SIGN-UP COMPLETE</span>
+          <span className="pa-pill success" style={{ marginBottom: 16 }}><span className="dot"></span>ACCOUNT CREATED</span>
           <h1 style={{ fontFamily: 'Instrument Serif, serif', fontSize: 38, lineHeight: 1.1, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
-            Meet your pseudonym.
+            Set up your authenticator.
           </h1>
           <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 22px' }}>
-            This is the only identifier researchers will ever see. Write it down — you'll use it to sign in.
+            Scan this key in your authenticator app (Google Authenticator, Authy, etc.) or paste the full URI. MFA is required to sign in.
           </p>
-          <div style={{
-            padding: 24,
-            background: 'var(--ink)',
-            color: 'var(--cream)',
-            borderRadius: 14,
-            textAlign: 'center',
-            marginBottom: 20,
-          }}>
-            <div className="pa-mono" style={{ fontSize: 10, letterSpacing: '0.16em', color: 'var(--cream-3)' }}>YOUR PARTICIPANT ID</div>
-            <div className="pa-mono" style={{ fontSize: 34, marginTop: 10, letterSpacing: '0.06em' }}>{PSEUDONYM}</div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 14, fontSize: 12, color: 'var(--cream-3)' }}>
-              <Icon name="lock" size={12}/> Vault keyed to your passphrase
+          {totpSecret && (
+            <div style={{ padding: 20, background: 'var(--ink)', color: 'var(--cream)', borderRadius: 14, marginBottom: 16 }}>
+              <div className="pa-mono" style={{ fontSize: 10, letterSpacing: '0.16em', color: 'var(--cream-3)' }}>TOTP SECRET KEY</div>
+              <div className="pa-mono" style={{ fontSize: 18, marginTop: 10, letterSpacing: '0.12em', wordBreak: 'break-all' }}>{totpSecret}</div>
+              <div style={{ fontSize: 12, color: 'var(--cream-3)', marginTop: 10 }}>Enter this key manually in your authenticator app.</div>
             </div>
-          </div>
+          )}
           <div style={{ display: 'grid', gap: 8, marginBottom: 22 }}>
-            <button className="pa-btn pa-btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>
-              <Icon name="file" size={14}/> Copy ID
-            </button>
-            <button className="pa-btn pa-btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>
-              <Icon name="upload" size={14}/> Email a backup copy to {email || 'your inbox'}
-            </button>
+            {totpSecret && (
+              <button className="pa-btn pa-btn-ghost" style={{ width: '100%', justifyContent: 'center' }} onClick={copySecret}>
+                <Icon name="file" size={14}/> Copy secret key
+              </button>
+            )}
           </div>
-          <Link to="/patient" className="pa-btn pa-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 16px', textDecoration: 'none' }}>
-            Go to my dashboard <Icon name="arrow" size={14}/>
-          </Link>
+          <button
+            className="pa-btn pa-btn-primary"
+            style={{ width: '100%', justifyContent: 'center', padding: '12px 16px' }}
+            onClick={() => navigate('/login')}
+          >
+            Go to sign in <Icon name="arrow" size={14}/>
+          </button>
         </>
       )}
     </AuthFrame>
