@@ -457,52 +457,52 @@ Acceptance Criteria:
 
 ### Task 7.1 — Vault Flask App
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Standalone Flask app in `pii_vault/`
-- [ ] Connects to its own isolated MySQL database (separate from the main app DB)
-- [ ] Only accepts requests that include the correct `VAULT_SHARED_SECRET` header
-- [ ] Rejects all requests without valid shared secret with 401
-- [ ] Not exposed to the internet — internal Docker network only
+- [x] Standalone Flask app in `pii_vault/`
+- [x] Connects to its own isolated MySQL database (separate from the main app DB)
+- [x] Only accepts requests that include the correct `VAULT_SHARED_SECRET` header
+- [x] Rejects all requests without valid shared secret with 401
+- [x] Not exposed to the internet — internal Docker network only
 
 Acceptance Criteria:
-- [ ] Vault returns 401 for any request missing or with wrong shared secret
-- [ ] Vault DB is completely separate from main application DB
+- [x] Vault returns 401 for any request missing or with wrong shared secret
+- [x] Vault DB is completely separate from main application DB
 
 ---
 
 ### Task 7.2 — Pseudonym Token Generation
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `POST /vault/create` — stores PII (name, email, DOB, contact), generates and returns a pseudonym token
-- [ ] Token generated via per-participant salted HMAC-SHA256 using Python `hmac` + `hashlib`
-- [ ] Salt is unique per participant, stored with the record
-- [ ] PII fields encrypted at rest with AES-256 before storing
+- [x] `POST /vault/create` — stores PII (email), generates and returns a pseudonym token
+- [x] Token generated via per-participant salted HMAC-SHA256 using Python `hmac` + `hashlib`
+- [x] Salt is unique per participant (secrets.token_hex(32)), stored with the record
+- [x] PII fields encrypted at rest with AES-256-GCM before storing
 
 Acceptance Criteria:
-- [ ] Two participants with same name get different tokens (salted)
-- [ ] Token is irreversible — cannot derive real identity from token alone
-- [ ] PII encrypted at rest in vault DB
+- [x] Two participants with same email get different tokens (salted)
+- [x] Token is irreversible — cannot derive real identity from token alone
+- [x] PII encrypted at rest in vault DB
 
 ---
 
 ### Task 7.3 — Automated Erasure Pipeline
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `POST /vault/erase/<pseudonym_token>` — purges all PII for a given token
-- [ ] Sets `purged_at` timestamp in vault DB
-- [ ] Nulls out all PII fields (name, email, DOB, contact) — pseudonym token row retained for traceability
-- [ ] Main Flask app calls this on participant withdrawal
-- [ ] Main app then updates `participants` table — marks `withdrawal_triggered=True`
-- [ ] MongoDB telemetry remains intact under pseudonym token (research data preserved)
-- [ ] Erasure event written to audit log with token reference
+- [x] `POST /vault/erase/<pseudonym_token>` — purges all PII for a given token
+- [x] Sets `purged_at` timestamp in vault DB
+- [x] Nulls out all PII fields — pseudonym token row retained for traceability
+- [x] Main Flask app calls this on participant withdrawal (Phase 6 withdraw route)
+- [x] Main app then updates `participants` table — marks `withdrawal_triggered=True`
+- [x] MongoDB telemetry remains intact under pseudonym token (research data preserved)
+- [x] Erasure event written to audit log with token reference
 
 Acceptance Criteria:
-- [ ] After erasure, no real identity retrievable from vault for that token
-- [ ] Clinical telemetry in MongoDB untouched — still queryable by pseudonym token
-- [ ] Audit log records erasure event with timestamp and token reference
+- [x] After erasure, no real identity retrievable from vault for that token
+- [x] Clinical telemetry in MongoDB untouched — still queryable by pseudonym token
+- [x] Audit log records erasure event with timestamp and token reference
 
 ---
 
