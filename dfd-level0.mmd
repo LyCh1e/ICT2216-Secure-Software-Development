@@ -1,0 +1,43 @@
+%%{init: {"flowchart": {"curve": "linear"}}}%%
+flowchart LR
+    subgraph INTERNET["Public Internet"]
+        P["Clinical Trial Participant (Volunteer)"]
+        PR["Pharmaceutical Representative (Researcher)"]
+        A["Administrator"]
+        TOTP["TOTP Authenticator (External MFA App)"]
+    end
+
+    subgraph APPTIER["Application Tier  ── Trust Boundary 1"]
+        TG(("TrialGuard"))
+    end
+
+    subgraph DBTIER["Backend / Database Tier  ── Trust Boundary 2"]
+        DB[("Application Database (MySQL / MongoDB)")]
+        VAULT[("PII Identity Vault (Cryptographically Isolated)")]
+    end
+
+    %% Participant flows
+    P -- "Registration data + consent submission" --> TG
+    P -- "Login credentials + MFA code" --> TG
+    P -- "Health data telemetry upload" --> TG
+    TG -- "TOTP URI + session + trial listings + consent status" --> P
+
+    %% Pharmaceutical Rep flows
+    PR -- "Login credentials + MFA code" --> TG
+    PR -- "Trial data (create / update / close)" --> TG
+    TG -- "Anonymised trial data + pseudonymised participant records" --> PR
+
+    %% Admin flows
+    A -- "Login credentials + MFA code" --> TG
+    A -- "User management commands + audit log queries" --> TG
+    TG -- "Audit logs + user & system reports" --> A
+
+    %% TOTP flows
+    TG -- "TOTP provisioning URI" --> TOTP
+    TOTP -- "Time-based OTP code" --> P & PR & A
+
+    %% Data store flows
+    TG -- "Write: user / trial / consent / audit records" --> DB
+    DB -- "Read: user / trial / consent / audit records" --> TG
+    TG -- "Write: PII (name, NRIC, contact) encrypted" --> VAULT
+    VAULT -- "Read: resolved PII" --> TG
