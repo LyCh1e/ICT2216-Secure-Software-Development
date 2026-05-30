@@ -149,10 +149,13 @@ def verify_mfa():
     session['role']     = user.role
     session.permanent   = True
 
+    first_setup      = not user.mfa_enabled
     user.mfa_enabled = True
     user.last_login  = datetime.utcnow()
     db.session.commit()
 
+    if first_setup:
+        write_audit('mfa_setup', 'success', user_id=user.user_id, ip_address=ip)
     write_audit('mfa_verify', 'success', user_id=user.user_id, ip_address=ip)
     return jsonify({'message': 'Login successful.', 'role': user.role}), 200
 

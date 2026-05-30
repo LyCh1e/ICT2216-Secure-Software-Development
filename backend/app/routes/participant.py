@@ -242,6 +242,9 @@ def withdraw(trial_id):
                     resource_affected=trial_id, ip_address=_ip())
         return jsonify({'error': 'Withdrawal failed. Please try again.'}), 500
 
+    write_audit('pii_erasure', 'success', user_id=user_id,
+                resource_affected=participant.pseudonym_token, ip_address=_ip())
+
     participant.consent_status      = 'withdrawn'
     participant.withdrawal_triggered = True
 

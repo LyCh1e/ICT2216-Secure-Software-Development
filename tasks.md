@@ -510,40 +510,40 @@ Acceptance Criteria:
 
 ### Task 8.1 — Append-Only Audit Log
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] `AuditLog` model — `log_id`, `user_id`, `action_type`, `resource_affected`, `outcome`, `ip_address`, `timestamp`, `prev_hash`, `entry_hash`
-- [ ] App DB user has INSERT-only privilege on `audit_logs` — no UPDATE or DELETE
-- [ ] `entry_hash` = SHA-256 of (`prev_hash` + `timestamp` + `user_id` + `action_type` + `outcome`)
-- [ ] `prev_hash` = `entry_hash` of the previous log row (hash chaining per NFR-2)
+- [x] `AuditLog` model — `log_id`, `user_id`, `action_type`, `resource_affected`, `outcome`, `ip_address`, `timestamp`, `prev_hash`, `entry_hash`
+- [x] App DB user has INSERT-only privilege on `audit_logs` — no UPDATE or DELETE
+- [x] `entry_hash` = SHA-256 of (`prev_hash` + `timestamp` + `user_id` + `action_type` + `outcome`)
+- [x] `prev_hash` = `entry_hash` of the previous log row (hash chaining per NFR-2)
 
 Acceptance Criteria:
-- [ ] Attempting to UPDATE or DELETE an audit log row from the app fails at DB level
-- [ ] Each log entry's `entry_hash` is verifiable against its inputs
-- [ ] Chain can be validated sequentially from first entry
+- [x] Attempting to UPDATE or DELETE an audit log row from the app fails at DB level
+- [x] Each log entry's `entry_hash` is verifiable against its inputs
+- [x] Chain can be validated sequentially from first entry
 
 ---
 
 ### Task 8.2 — Log All Sensitive Events
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Login attempt (success and failure) — include IP address
-- [ ] Logout
-- [ ] Registration
-- [ ] MFA setup and verification
-- [ ] Account lockout triggered
-- [ ] Consent submitted
-- [ ] Withdrawal triggered
-- [ ] Health data submitted
-- [ ] PII erasure completed
-- [ ] Admin user suspend/activate
-- [ ] Admin trial create/update
-- [ ] Researcher data access
+- [x] Login attempt (success and failure) — include IP address
+- [x] Logout
+- [x] Registration
+- [x] MFA setup and verification
+- [x] Account lockout triggered
+- [x] Consent submitted
+- [x] Withdrawal triggered
+- [x] Health data submitted
+- [x] PII erasure completed
+- [x] Admin user suspend/activate
+- [x] Admin trial create/update
+- [x] Researcher data access
 
 Acceptance Criteria:
-- [ ] Every event in the list above produces an audit log entry
-- [ ] Log entries include: user_id, action_type, resource_affected, outcome, ip_address, timestamp
+- [x] Every event in the list above produces an audit log entry
+- [x] Log entries include: user_id, action_type, resource_affected, outcome, ip_address, timestamp
 
 ---
 
