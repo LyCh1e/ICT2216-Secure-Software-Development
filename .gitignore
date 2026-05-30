@@ -42,4 +42,6 @@ nginx/certs/
 # Powrshell / SSH Scripts
 *.ps1
 *.sh
-*.pem
+
+# EC2 Credentials
+EC2-Access/
