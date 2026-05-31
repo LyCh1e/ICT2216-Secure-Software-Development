@@ -151,6 +151,7 @@ def login():
 # ── 4.3 Verify MFA ───────────────────────────────────────────────────────────
 
 @auth_bp.route('/verify-mfa', methods=['POST'])
+@limiter.limit('10 per minute')
 def verify_mfa():
     pending = session.get('mfa_pending_user_id')
     if not pending:

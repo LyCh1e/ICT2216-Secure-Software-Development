@@ -9,6 +9,8 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 echo "[$(date -u +%FT%TZ)] Starting backup…"
 
 mysqldump \
+    --single-transaction \
+    --skip-lock-tables \
     -h mysql \
     -u"${DB_USER}" \
     -p"${DB_PASS}" \
@@ -16,6 +18,8 @@ mysqldump \
   > "${BACKUP_DIR}/main_${TIMESTAMP}.sql"
 
 mysqldump \
+    --single-transaction \
+    --skip-lock-tables \
     -h vault_db \
     -u"${VAULT_DB_USER}" \
     -p"${VAULT_DB_PASS}" \

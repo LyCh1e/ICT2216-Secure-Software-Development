@@ -210,7 +210,7 @@ def apply_to_trial(trial_id):
 
     write_audit('consent_submit', 'success', user_id=user_id,
                 resource_affected=trial_id, ip_address=_ip())
-    return jsonify({'message': 'Enrolled successfully.', 'pseudonym_token': token}), 201
+    return jsonify({'message': 'Enrolled successfully.'}), 201
 
 
 # ── Health telemetry ──────────────────────────────────────────────────────────

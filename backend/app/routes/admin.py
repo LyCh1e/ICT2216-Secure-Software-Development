@@ -26,7 +26,7 @@ def _extra_fields(data, allowed):
 
 
 def _ip():
-    return request.headers.get('X-Forwarded-For', request.remote_addr)
+    return request.headers.get('X-Real-IP') or request.remote_addr
 
 
 # ── Users ─────────────────────────────────────────────────────────────────────
@@ -213,6 +213,30 @@ def compliance_report():
     return jsonify(report), 200
 
 
+# ── Role management ───────────────────────────────────────────────────────────
+
+_VALID_ROLES = frozenset({'participant', 'researcher', 'admin'})
+
+@admin_bp.route('/users/<user_id>/role', methods=['POST'])
+@require_role('admin')
+def set_role(user_id):
+    data = request.get_json(silent=True) or {}
+    role = str(data.get('role', '')).strip()
+    if role not in _VALID_ROLES:
+        return jsonify({'error': 'Invalid role. Must be participant, researcher, or admin.'}), 400
+
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({'error': 'Not found'}), 404
+
+    user.role = role
+    db.session.commit()
+
+    write_audit('role_change', 'success', user_id=session['user_id'],
+                resource_affected=user_id, ip_address=_ip())
+    return jsonify({'message': f'Role updated to {role}.'}), 200
+
+
 # ── Audit log ─────────────────────────────────────────────────────────────────
 
 @admin_bp.route('/audit-log', methods=['GET'])
@@ -237,5 +261,7 @@ def get_audit_log():
             'outcome':           l.outcome,
             'ip_address':        l.ip_address,
             'timestamp':         l.timestamp.isoformat(),
+            'prev_hash':         l.prev_hash,
+            'entry_hash':        l.entry_hash,
         } for l in paginated.items],
     }), 200

@@ -61,7 +61,7 @@ class ConsentRecord(db.Model):
     consent_id             = db.Column(db.String(36),  primary_key=True)
     participant_id         = db.Column(db.String(36),  db.ForeignKey('participants.participant_id'), nullable=False)
     trial_id               = db.Column(db.String(36),  db.ForeignKey('trials.trial_id'), nullable=False)
-    consent_text_version   = db.Column(db.String(16),  nullable=False)
+    consent_text_version   = db.Column(db.String(64),  nullable=False)
     signed_at              = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
     digital_signature_hash = db.Column(db.String(128), nullable=False)
     withdrawn_at           = db.Column(db.DateTime,    default=None)

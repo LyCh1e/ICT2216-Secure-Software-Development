@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS consent_records (
     consent_id              CHAR(36)    PRIMARY KEY DEFAULT (UUID()),
     participant_id          CHAR(36)    NOT NULL,
     trial_id                CHAR(36)    NOT NULL,
-    consent_text_version    VARCHAR(16) NOT NULL,
+    consent_text_version    VARCHAR(64) NOT NULL,
     signed_at               DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     digital_signature_hash  VARCHAR(128) NOT NULL,
     withdrawn_at            DATETIME    DEFAULT NULL,
