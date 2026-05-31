@@ -10,7 +10,8 @@ import urllib.error
 import urllib.request
 import webbrowser
 
-URL = "https://localhost"
+# change ports in docker-compose.yml to 8000:80 and 8443:443 for local testing without TLS
+URL = "https://localhost:8443" 
 WAIT_SECONDS = 120
 POLL_INTERVAL = 2
 
@@ -87,13 +88,14 @@ def purge_frontend_volume():
     subprocess.run(["docker", "compose", "stop", "nginx", "frontend-build"],
                    capture_output=True)
 
-    # Remove any stopped containers still referencing the volume
-    result = subprocess.run(
-        ["docker", "ps", "-a", "--filter", f"volume={vol}", "--format", "{{{{.ID}}}}"],
-        capture_output=True, text=True,
-    )
-    for cid in result.stdout.split():
-        subprocess.run(["docker", "rm", cid.strip()], capture_output=True)
+    # Force-remove ALL containers (running or stopped) referencing the volume
+    for flag in ["", "-a"]:
+        args = ["docker", "ps", "--filter", f"volume={vol}", "--format", "{{.ID}}"]
+        if flag:
+            args.insert(2, flag)
+        result = subprocess.run(args, capture_output=True, text=True)
+        for cid in result.stdout.split():
+            subprocess.run(["docker", "rm", "-f", cid.strip()], capture_output=True)
 
     # Remove the volume itself (ignore error if it doesn't exist yet)
     subprocess.run(["docker", "volume", "rm", vol], capture_output=True)
@@ -104,6 +106,9 @@ def main():
 
     print("Purging stale frontend volume to pick up UI changes...")
     purge_frontend_volume()
+
+    print("Rebuilding frontend image (no cache)...")
+    docker_compose(["build", "--no-cache", "frontend-build"])
 
     print("Building and starting TrialGuard stack...")
     result = docker_compose(["up", "-d", "--build"])

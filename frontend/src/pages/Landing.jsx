@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import lockprofileImg from '../../media/lock-icon.jpg'
+import relaxImg from '../../media/relax.png'
 import { Link } from 'react-router-dom'
 import { TgLogo, Icon, PhotoSlot, FaqList, EmailCapture, EligibilityQuiz, Modal, TrialCard } from '../components/shared'
 import { TG_TRIALS, TG_STEPS, TG_STATS, TG_QUOTES } from '../data/landing'
@@ -51,7 +53,7 @@ export default function Landing() {
           </div>
 
           <div style={{ position: 'relative' }}>
-            <PhotoSlot aspect="4 / 5" label="photo · researcher + participant (hands, lab)" style={{ borderRadius: 'calc(var(--tg-radius) * 2)' }}/>
+            <img src={lockprofileImg} alt="Researcher and participant" style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'cover', borderRadius: 'calc(var(--tg-radius) * 2)', display: 'block' }} />
             <div className="tg-card" style={{ position: 'absolute', left: -40, bottom: 30, width: 280, padding: 18, boxShadow: '0 18px 40px -16px rgba(28,24,20,0.25)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <span style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--sage-tint)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sage-2)' }}><Icon name="lock" size={16}/></span>
@@ -152,7 +154,7 @@ export default function Landing() {
       {/* PRIVACY DETAIL */}
       <section style={{ padding: 'var(--tg-pad-y) var(--tg-pad-x)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 80, alignItems: 'center' }}>
-          <PhotoSlot aspect="4 / 5" label="photo · person reading on a sunlit sofa"/>
+          <img src={relaxImg} alt="Person reading on a sunlit sofa" style={{ width: '100%', aspectRatio: '3 / 2', objectFit: 'cover', borderRadius: 'calc(var(--tg-radius) * 2)', display: 'block' }} />
           <div>
             <span className="tg-eyebrow"><span className="dot"></span>Quietly, by default</span>
             <h2 className="tg-serif" style={{ fontSize: 'clamp(34px, 3.6vw, 48px)', lineHeight: 1.1, margin: '14px 0 22px' }}>
