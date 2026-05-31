@@ -169,8 +169,8 @@ ssh -i $PEM $HOST "cd ~/ICT2216-Secure-Software-Development && tar xf ~/trialgua
 # 4. If docker-compose.yml or nginx config changed, push it directly too:
 scp -i $PEM docker-compose.yml "${HOST}:~/ICT2216-Secure-Software-Development/docker-compose.yml"
 
-# 5. Rebuild and restart only changed services
-ssh -i $PEM $HOST "cd ~/ICT2216-Secure-Software-Development && docker compose up -d --build"
+# 5. Force-rebuild frontend (no cache), purge stale volume, restart
+ssh -i $PEM $HOST "cd ~/ICT2216-Secure-Software-Development && docker compose build --no-cache frontend-build && docker compose stop nginx frontend-build && docker volume rm ict2216-secure-software-development_frontend_dist 2>/dev/null || true && docker compose up -d --build"
 ```
 
 **Certs are not in git** — push them once on a fresh instance:
