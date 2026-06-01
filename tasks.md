@@ -766,20 +766,20 @@ Acceptance Criteria:
 
 ### Task 11.4 — Smoke Test All Roles
 
-**Status:** Not Started
+**Status:** Done — verified 2026-06-01 on EC2 (18.223.111.152)
 
-- [ ] Register a participant account and complete MFA setup
-- [ ] Log in as participant — verify redirects to patient portal
-- [ ] Submit health data — verify stored under pseudonym token
-- [ ] Withdraw from trial — verify PII erasure and audit log entry
-- [ ] Log in as researcher — verify only aggregate stats visible
-- [ ] Log in as admin — verify user list, audit log readable
-- [ ] Attempt cross-role access (e.g. researcher hitting participant endpoint) — verify 403
+- [x] Register a participant account and complete MFA setup
+- [x] Log in as participant — verify redirects to patient portal
+- [x] Submit health data — verify stored under pseudonym token
+- [x] Withdraw from trial — verify PII erasure and audit log entry
+- [x] Log in as researcher — verify only aggregate stats visible
+- [x] Log in as admin — verify user list, audit log readable
+- [x] Attempt cross-role access (e.g. researcher hitting participant endpoint) — verify 403
 
 Acceptance Criteria:
-- [ ] All roles work end-to-end
-- [ ] Cross-role access blocked in all tested cases
-- [ ] Audit log contains entries for every action performed during smoke test
+- [x] All roles work end-to-end
+- [x] Cross-role access blocked in all tested cases
+- [x] Audit log contains entries for every action performed during smoke test
 
 ---
 
