@@ -10,6 +10,7 @@ import Faq from './pages/Faq'
 import Privacy from './pages/Privacy'
 import Researchers from './pages/Researchers'
 import Trials from './pages/Trials'
+import VerifyEmail from './pages/VerifyEmail'
 
 function ProtectedRoute({ role, children }) {
   const { auth } = useAuth()
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/researchers" element={<Researchers />} />

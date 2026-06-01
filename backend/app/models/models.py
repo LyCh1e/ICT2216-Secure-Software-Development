@@ -17,6 +17,8 @@ class User(db.Model):
     locked_until          = db.Column(db.DateTime, default=None)
     created_at            = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_login            = db.Column(db.DateTime, default=None)
+    verify_token          = db.Column(db.String(64), default=None)
+    verify_token_expires  = db.Column(db.DateTime, default=None)
 
     participants = db.relationship('Participant', backref='user', lazy=True)
 

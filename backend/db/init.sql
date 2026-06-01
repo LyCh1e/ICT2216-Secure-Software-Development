@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS users (
     failed_login_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
     locked_until    DATETIME        DEFAULT NULL,
     created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_login      DATETIME        DEFAULT NULL
+    last_login      DATETIME        DEFAULT NULL,
+    verify_token    VARCHAR(64)     DEFAULT NULL,
+    verify_token_expires DATETIME   DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS trials (

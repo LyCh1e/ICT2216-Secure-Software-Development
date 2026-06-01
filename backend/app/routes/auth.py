@@ -1,4 +1,6 @@
+import hashlib
 import re
+import secrets
 import uuid
 from datetime import datetime, timedelta
 
@@ -10,6 +12,7 @@ from flask_wtf.csrf import generate_csrf
 from app.extensions import csrf, db, limiter
 from app.models.models import User
 from app.services.audit import write_audit
+from app.services.email import send_verification_email
 
 auth_bp = Blueprint('auth', __name__)
 # JSON API — CSRF mitigated by SameSite=Strict + CORS restrictions
@@ -83,6 +86,10 @@ def register():
     mfa_secret = pyotp.random_base32()
     user_id    = str(uuid.uuid4())
 
+    raw_token   = secrets.token_urlsafe(32)
+    token_hash  = hashlib.sha256(raw_token.encode()).hexdigest()
+    token_expiry = datetime.utcnow() + timedelta(hours=24)
+
     db.session.add(User(
         user_id=user_id,
         username=username,
@@ -92,8 +99,12 @@ def register():
         mfa_secret=mfa_secret,
         email_verified=False,
         mfa_enabled=False,
+        verify_token=token_hash,
+        verify_token_expires=token_expiry,
     ))
     db.session.commit()
+
+    send_verification_email(email, raw_token)
 
     totp_uri = pyotp.TOTP(mfa_secret).provisioning_uri(name=email, issuer_name='TrialGuard')
     write_audit('register', 'success', user_id=user_id, ip_address=_ip())
@@ -201,3 +212,55 @@ def logout():
     if user_id:
         write_audit('logout', 'success', user_id=user_id, ip_address=_ip())
     return jsonify({'message': 'Logged out.'}), 200
+
+
+# ── Email verification ────────────────────────────────────────────────────────
+
+@auth_bp.route('/verify-email', methods=['GET'])
+def verify_email():
+    raw_token = request.args.get('token', '').strip()
+    if not raw_token:
+        return jsonify({'error': 'Invalid or missing token.'}), 400
+
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    user = User.query.filter_by(verify_token=token_hash).first()
+
+    if not user:
+        write_audit('email_verify', 'failure', ip_address=_ip())
+        return jsonify({'error': 'Invalid or expired verification link.'}), 400
+
+    if user.verify_token_expires < datetime.utcnow():
+        write_audit('email_verify', 'failure', user_id=user.user_id, ip_address=_ip())
+        return jsonify({'error': 'Verification link has expired. Please request a new one.'}), 400
+
+    user.email_verified      = True
+    user.verify_token        = None
+    user.verify_token_expires = None
+    db.session.commit()
+
+    write_audit('email_verify', 'success', user_id=user.user_id, ip_address=_ip())
+    return jsonify({'message': 'Email verified successfully. You can now log in.'}), 200
+
+
+# ── Resend verification email ─────────────────────────────────────────────────
+
+@auth_bp.route('/resend-verification', methods=['POST'])
+@limiter.limit('3 per hour')
+def resend_verification():
+    data  = request.get_json(silent=True) or {}
+    email = str(data.get('email', '')).strip().lower()
+
+    if not _EMAIL_RE.match(email):
+        return jsonify({'error': 'Invalid input.'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    # Always return success to avoid email enumeration
+    if user and not user.email_verified:
+        raw_token   = secrets.token_urlsafe(32)
+        token_hash  = hashlib.sha256(raw_token.encode()).hexdigest()
+        user.verify_token         = token_hash
+        user.verify_token_expires = datetime.utcnow() + timedelta(hours=24)
+        db.session.commit()
+        send_verification_email(email, raw_token)
+
+    return jsonify({'message': 'If that email is registered and unverified, a new link has been sent.'}), 200

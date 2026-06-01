@@ -277,9 +277,12 @@ export default function Signup() {
           <h1 style={{ fontFamily: 'Instrument Serif, serif', fontSize: 38, lineHeight: 1.1, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
             Set up your authenticator.
           </h1>
-          <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 22px' }}>
+          <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 16px' }}>
             Scan this key in your authenticator app (Google Authenticator, Authy, etc.) or paste the full URI. MFA is required to sign in.
           </p>
+          <div style={{ padding: '12px 16px', background: 'var(--sage-tint)', border: '1px solid var(--sage)', borderRadius: 10, marginBottom: 18, fontSize: 13, color: 'var(--ink-2)' }}>
+            <strong>Check your email.</strong> We sent a verification link to <strong>{email}</strong>. Click it before you log in.
+          </div>
           {totpSecret && (
             <div style={{ padding: 20, background: 'var(--ink)', color: 'var(--cream)', borderRadius: 14, marginBottom: 16 }}>
               <div className="pa-mono" style={{ fontSize: 10, letterSpacing: '0.16em', color: 'var(--cream-3)' }}>TOTP SECRET KEY</div>
