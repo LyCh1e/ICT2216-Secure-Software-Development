@@ -329,11 +329,14 @@ function PatientTrials({ profile, onRefresh }) {
     setHealthErr('')
     setHealthLoading(true)
     try {
+      const recorded_at = health.recorded_at.length === 16
+        ? health.recorded_at + ':00'
+        : health.recorded_at
       await api.post('/api/health/submit', {
         measurement_type: health.measurement_type,
         value: val,
         unit: health.unit,
-        recorded_at: health.recorded_at,
+        recorded_at,
       })
       setHealthOpen(false)
       setHealth({ measurement_type: '', value: '', unit: '', recorded_at: '' })
