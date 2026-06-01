@@ -15,7 +15,7 @@ function AuthFrame({ children, brand }) {
     }}>
       <div style={{ display: 'flex', flexDirection: 'column', padding: '32px 56px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <TgLogo size={22}/>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}><TgLogo size={22}/></Link>
           <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
             Need help? <span className="pa-link">hello@trialguard.health</span>
           </span>

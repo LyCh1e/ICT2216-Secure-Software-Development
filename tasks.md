@@ -811,4 +811,4 @@ Acceptance Criteria:
 - [x] Automated daily DB backups — `db-backup` service runs `backup/backup.sh` every 24 h; keeps 7 most recent dumps in `db_backups` named volume — running on EC2
 - [x] Docker health checks and auto-restart policies — `flask` and `pii_vault` have `healthcheck` blocks; nginx waits on `flask: service_healthy`; all services `restart: unless-stopped`
 - [x] Admin compliance report export — `GET /api/admin/compliance-report` returns aggregated JSON summary; every export audit-logged
-- [ ] Email verification for new accounts
+- [x] Email verification for new accounts — token-based (SHA-256 hashed, 24h expiry), sent via Mailtrap SMTP sandbox; `GET /api/auth/verify-email?token=...` sets `email_verified=True`; resend endpoint at `POST /api/auth/resend-verification`
