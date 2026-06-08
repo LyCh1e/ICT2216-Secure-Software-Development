@@ -1,0 +1,82 @@
+graph TB
+    Client(["Client Browser<br/>Any Device"])
+
+    subgraph INTERNET["Public Internet"]
+        Client
+    end
+
+    subgraph EC2["AWS EC2 Instance  (Ubuntu 22.04)"]
+        HOST_PORTS["Host Network<br/>:80 (HTTP) · :443 (HTTPS)"]
+
+        subgraph DOCKER["Docker Engine"]
+            subgraph DMZ["DMZ — Port-Exposed Containers"]
+                nginx["nginx 1.27<br/>Reverse Proxy + TLS Termination<br/>ports: 80:80 · 443:443<br/>TLS certs: /etc/nginx/certs (ro)"]
+                flask["Flask 3 + Gunicorn<br/>Backend API<br/>port: 8080:8080"]
+            end
+
+            subgraph INTERNAL["Internal Docker Network  (bridge: internal)"]
+                pii_vault["pii_vault<br/>Flask Microservice<br/>expose: 8888"]
+                mysql["mysql:8.0<br/>App Database<br/>expose: 3306"]
+                vault_db["mysql:8.0<br/>PII Vault DB<br/>expose: 3306"]
+                mongodb["mongo:7.0<br/>Telemetry Store<br/>expose: 27017"]
+                db_backup["db-backup<br/>mysql:8.0<br/>24 h cron dump"]
+                frontend_build["frontend-build<br/>Node 18 / Vite<br/>build artifact only"]
+            end
+
+            subgraph VOLUMES["Named Volumes  (persistent)"]
+                vol_fe[("frontend_dist")]
+                vol_mysql[("mysql_data")]
+                vol_vault_db[("vault_db_data")]
+                vol_mongo[("mongo_data")]
+                vol_backups[("db_backups")]
+            end
+        end
+    end
+
+    %% Internet → Host
+    Client -->|"HTTPS :443 / HTTP :80"| HOST_PORTS
+    HOST_PORTS --> nginx
+
+    %% nginx internal routing
+    nginx -->|"static assets (ro)"| vol_fe
+    nginx -->|"/api/* :8080"| flask
+
+    %% flask dependencies
+    flask -->|":3306 SQL"| mysql
+    flask -->|":27017 BSON"| mongodb
+    flask -->|"shared-secret :8888"| pii_vault
+
+    %% pii_vault dependency
+    pii_vault -->|":3306 SQL"| vault_db
+
+    %% frontend build → volume
+    frontend_build -->|"dist/ write"| vol_fe
+
+    %% Persistent volume mounts
+    mysql --- vol_mysql
+    vault_db --- vol_vault_db
+    mongodb --- vol_mongo
+
+    %% db-backup reads both DBs and writes to backup volume
+    db_backup -->|"mysqldump :3306"| mysql
+    db_backup -->|"mysqldump :3306"| vault_db
+    db_backup -->|"write dump"| vol_backups
+
+    %% Styles
+    classDef client   fill:#e8eaf6,stroke:#3949ab,color:#000
+    classDef proxy    fill:#fce4ec,stroke:#c62828,color:#000
+    classDef api      fill:#e8f5e9,stroke:#2e7d32,color:#000
+    classDef micro    fill:#f3e5f5,stroke:#6a1b9a,color:#000
+    classDef db       fill:#fff8e1,stroke:#f57c00,color:#000
+    classDef util     fill:#f5f5f5,stroke:#616161,color:#000
+    classDef vol      fill:#fff3e0,stroke:#e65100,color:#000
+    classDef hostnet  fill:#e1f5fe,stroke:#0277bd,color:#000
+
+    class Client client
+    class nginx proxy
+    class flask api
+    class pii_vault micro
+    class mysql,vault_db,mongodb db
+    class db_backup,frontend_build util
+    class vol_fe,vol_mysql,vol_vault_db,vol_mongo,vol_backups vol
+    class HOST_PORTS hostnet
