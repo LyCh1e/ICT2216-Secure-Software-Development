@@ -1,0 +1,46 @@
+graph TB
+    subgraph L0["  Client Layer  "]
+        Internet(["Browser / Internet"])
+    end
+
+    subgraph L1["  Proxy Layer  "]
+        nginx["nginx 1.27<br/>• HTTPS termination (443/80)<br/>• Rate limiting<br/>• Security headers (HSTS, CSP)"]
+    end
+
+    subgraph L2["  Presentation Layer  "]
+        frontend["React 18 + Vite<br/>• /patient portal<br/>• /researcher portal<br/>• /admin portal"]
+    end
+
+    subgraph L3["  Application Layer  "]
+        backend["Flask 3 + Gunicorn<br/>• /api/auth (login, MFA, logout)<br/>• /api/participant<br/>• /api/researcher<br/>• /api/admin"]
+        pii_vault["PII Vault<br/>Flask Microservice<br/>• Real identity storage<br/>• Pseudonym mapping<br/>• Shared-secret auth only"]
+    end
+
+    subgraph L4["  Data Layer  "]
+        mysql_main[("MySQL 8.0 — App DB<br/>• Users, Trials, Sessions<br/>• RBAC, Consent records<br/>• Audit log (hash chain)")]
+        mongodb[("MongoDB 7.0<br/>• Health telemetry<br/>• Time-series data<br/>• Pseudonym-keyed")]
+        mysql_vault[("MySQL 8.0 — Vault DB<br/>• PII fields only<br/>• INSERT-only privilege")]
+    end
+
+    Internet -->|"HTTPS"| nginx
+    nginx -->|"Static assets"| frontend
+    nginx -->|"/api/*"| backend
+    backend -->|"PII lookup / write"| pii_vault
+    backend --- mysql_main
+    backend --- mongodb
+    pii_vault --- mysql_vault
+
+    classDef layer fill:#f8f9fa,stroke:#dee2e6,color:#000
+    classDef proxy fill:#fce4ec,stroke:#c62828,color:#000
+    classDef fe fill:#e3f2fd,stroke:#1565c0,color:#000
+    classDef be fill:#e8f5e9,stroke:#2e7d32,color:#000
+    classDef vault fill:#f3e5f5,stroke:#6a1b9a,color:#000
+    classDef db fill:#fff8e1,stroke:#e65100,color:#000
+    classDef client fill:#f0f4ff,stroke:#4a6cf7,color:#000
+
+    class Internet client
+    class nginx proxy
+    class frontend fe
+    class backend be
+    class pii_vault vault
+    class mysql_main,mongodb,mysql_vault db
