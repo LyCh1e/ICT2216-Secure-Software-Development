@@ -31,22 +31,7 @@ Tasks below map to three frameworks from the ICT2216 Secure Software Development
 
 ## Phase 12 — Production Environment Hardening
 
-### Task 12.1 — Set FLASK_ENV to Production
-
-**Status:** Not Started
-
-- [ ] Change `FLASK_ENV=development` to `FLASK_ENV=production` in `.env` on EC2
-- [ ] Restart Flask container to apply change
-- [ ] Verify debug mode is off — Flask error responses should not include stack traces
-- [ ] Verify `SESSION_COOKIE_SECURE=True` is active (only enforced in ProductionConfig)
-
-Acceptance Criteria:
-- [ ] `FLASK_ENV=production` confirmed in container env (`docker exec trialguard-flask-1 env | grep FLASK_ENV`)
-- [ ] Triggering a 500 error returns `{"error": "Internal server error"}` with no stack trace
-
----
-
-### Task 12.2 — nginx Request Hardening
+### Task 12.1 — nginx Request Hardening
 
 **Status:** Not Started
 
@@ -65,7 +50,7 @@ Acceptance Criteria:
 
 ---
 
-### Task 12.3 — Flask-Limiter Persistent Storage (Redis)
+### Task 12.2 — Flask-Limiter Persistent Storage (Redis)
 
 **Status:** Not Started
 
@@ -83,7 +68,7 @@ Acceptance Criteria:
 
 ---
 
-### Task 12.4 — Fail2ban on EC2
+### Task 12.3 — Fail2ban on EC2
 
 **Status:** Not Started
 
@@ -98,7 +83,7 @@ Acceptance Criteria:
 
 ---
 
-### Task 12.5 — Automatic Security Updates on EC2
+### Task 12.4 — Automatic Security Updates on EC2
 
 **Status:** Not Started
 
@@ -603,8 +588,7 @@ Acceptance Criteria:
 ## Priority Summary
 
 ### Must Do (Critical Gaps)
-- [ ] Task 12.1 — FLASK_ENV production (debug mode on live server)
-- [ ] Task 12.2 — nginx hardening (timeouts, method restriction)
+- [ ] Task 12.1 — nginx hardening (timeouts, method restriction)
 - [ ] Task 13.1 — TLS certificate validity check
 - [ ] Task 13.2 — Session cookie security flags
 - [ ] Task 14.1 — bcrypt cost factor NFR (document justified iteration count)
@@ -613,8 +597,8 @@ Acceptance Criteria:
 - [ ] Task 17.2 — DB service account least privilege
 
 ### Should Do (Significant Risk Reduction)
-- [ ] Task 12.3 — Redis-backed rate limiting
-- [ ] Task 12.4 — Fail2ban SSH protection
+- [ ] Task 12.2 — Redis-backed rate limiting
+- [ ] Task 12.3 — Fail2ban SSH protection
 - [ ] Task 13.3 — Secrets not in git
 - [ ] Task 14.2 — Audit log hash chain integrity
 - [ ] Task 14.3 — DB referential integrity constraints
@@ -626,7 +610,7 @@ Acceptance Criteria:
 - [ ] Phase 19 — OWASP principles audit
 
 ### Nice to Have (Compliance and Documentation)
-- [ ] Task 12.5 — Automatic security updates
+- [ ] Task 12.4 — Automatic security updates
 - [ ] Task 13.4 — DB connection TLS
 - [ ] Task 15.2 — Backup restore test
 - [ ] Task 15.3 — Disk usage monitoring
