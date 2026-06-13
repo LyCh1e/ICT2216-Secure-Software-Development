@@ -43,10 +43,10 @@ Tasks below map to three frameworks from the ICT2216 Secure Software Development
 - [x] Add `Permissions-Policy` header — disable unused browser features (camera, microphone, geolocation)
 
 Acceptance Criteria:
-- [ ] Sending a request body larger than 1 MB returns 413
-- [ ] Security headers verified with `curl -skI https://18.223.111.152/`
-- [ ] `Permissions-Policy` header present in response
-- [ ] PATCH, OPTIONS, TRACE requests return 405
+- [x] Sending a request body larger than 1 MB returns 413
+- [x] Security headers verified with `curl -skI https://18.223.111.152/`
+- [x] `Permissions-Policy` header present in response
+- [x] PATCH, OPTIONS, TRACE requests return 405
 
 ---
 
