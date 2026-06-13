@@ -33,14 +33,14 @@ Tasks below map to three frameworks from the ICT2216 Secure Software Development
 
 ### Task 12.1 — nginx Request Hardening
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Add `client_max_body_size 1m` — reject oversized request bodies
-- [ ] Add `client_body_timeout 10s` and `client_header_timeout 10s` — drop slow clients
-- [ ] Add `keepalive_timeout 15s` — limit persistent connection window
-- [ ] Add `send_timeout 10s` — drop stalled responses
-- [ ] Restrict allowed HTTP methods — return 405 on anything other than GET, POST, PUT, DELETE
-- [ ] Add `Permissions-Policy` header — disable unused browser features (camera, microphone, geolocation)
+- [x] Add `client_max_body_size 1m` — reject oversized request bodies
+- [x] Add `client_body_timeout 10s` and `client_header_timeout 10s` — drop slow clients
+- [x] Add `keepalive_timeout 15s` — limit persistent connection window
+- [x] Add `send_timeout 10s` — drop stalled responses
+- [x] Restrict allowed HTTP methods — return 405 on anything other than GET, POST, PUT, DELETE
+- [x] Add `Permissions-Policy` header — disable unused browser features (camera, microphone, geolocation)
 
 Acceptance Criteria:
 - [ ] Sending a request body larger than 1 MB returns 413
