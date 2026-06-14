@@ -8,7 +8,7 @@ on:
 
 jobs:
   # ─────────────────────────────────────────
-  # JOB 1: Backend Lint & Test
+  # JOB 1: Backend – Lint & Test
   # ─────────────────────────────────────────
   backend-ci:
     name: Backend – Lint & Test
@@ -32,9 +32,9 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          # Stop the build if there are Python syntax errors or undefined names
+          # Hard-fail on syntax errors or undefined names
           flake8 backend/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Treat all other issues as warnings
+          # Warn on all other style issues
           flake8 backend/ --count --max-line-length=120 --statistics --exit-zero
 
       - name: Run backend tests
@@ -46,11 +46,11 @@ jobs:
           if [ -d "backend/tests" ]; then
             pytest backend/tests/ -v --tb=short
           else
-            echo "No backend tests directory found – skipping"
+            echo "No backend/tests directory found – skipping"
           fi
 
   # ─────────────────────────────────────────
-  # JOB 2: Frontend Build & Lint
+  # JOB 2: Frontend – Build & Lint
   # ─────────────────────────────────────────
   frontend-ci:
     name: Frontend – Build & Lint
@@ -92,7 +92,7 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────
-  # JOB 3: Security Scan (Bandit + npm audit)
+  # JOB 3: Security Scan
   # ─────────────────────────────────────────
   security-scan:
     name: Security Scan
@@ -132,113 +132,3 @@ jobs:
           name: bandit-security-report
           path: bandit-report.json
           retention-days: 30
-
-  # ─────────────────────────────────────────
-  # JOB 4: Docker Build (validate images)
-  # ─────────────────────────────────────────
-  docker-build:
-    name: Docker – Build Images
-    runs-on: ubuntu-latest
-    needs: [backend-ci, frontend-ci]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: false
-          tags: trialguard-backend:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: false
-          tags: trialguard-frontend:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build pii_vault image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./pii_vault
-          push: false
-          tags: trialguard-pii-vault:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # ─────────────────────────────────────────
-  # JOB 5: Deploy to Production (main only)
-  # ─────────────────────────────────────────
-  deploy:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [security-scan, docker-build]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build & push backend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/trialguard-backend:latest
-            ${{ secrets.DOCKER_USERNAME }}/trialguard-backend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build & push frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/trialguard-frontend:latest
-            ${{ secrets.DOCKER_USERNAME }}/trialguard-frontend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build & push pii_vault
-        uses: docker/build-push-action@v5
-        with:
-          context: ./pii_vault
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/trialguard-pii-vault:latest
-            ${{ secrets.DOCKER_USERNAME }}/trialguard-pii-vault:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /opt/trialguard
-            docker compose pull
-            docker compose up -d --remove-orphans
-            docker image prune -f
