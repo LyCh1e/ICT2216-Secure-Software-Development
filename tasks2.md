@@ -72,14 +72,14 @@ Acceptance Criteria:
 
 **Status:** Not Started
 
-- [ ] Install Fail2ban: `sudo apt install fail2ban -y`
-- [ ] Create `/etc/fail2ban/jail.local` — enable SSH jail, ban after 5 failures for 1 hour
-- [ ] Enable and start Fail2ban service
-- [ ] Verify SSH jail is active: `sudo fail2ban-client status sshd`
+- [x] Install Fail2ban: `sudo apt install fail2ban -y`
+- [x] Create `/etc/fail2ban/jail.local` — enable SSH jail, ban after 5 failures for 1 hour
+- [x] Enable and start Fail2ban service
+- [x] Verify SSH jail is active: `sudo fail2ban-client status sshd`
 
 Acceptance Criteria:
-- [ ] `sudo fail2ban-client status sshd` shows jail is active
-- [ ] Fail2ban service is enabled on boot (`sudo systemctl is-enabled fail2ban`)
+- [x] `sudo fail2ban-client status sshd` shows jail is active
+- [x] Fail2ban service is enabled on boot (`sudo systemctl is-enabled fail2ban`)
 
 ---
 
