@@ -105,20 +105,20 @@ Acceptance Criteria:
 
 **Status:** Not Started
 
-- [ ] Confirm TLS certificate has not expired: `openssl s_client -connect 18.223.111.152:443 2>/dev/null | openssl x509 -noout -dates`
-- [ ] Verify certificate CN / SAN matches the domain (`medi.trialguard.com`)
-- [ ] Document certificate expiry date and schedule manual renewal reminder (Let's Encrypt: 90-day expiry, renew within 30 days)
-- [ ] Verify nginx serves HTTPS only — HTTP requests redirect 301 to HTTPS
+- [x] Confirm TLS certificate has not expired: `openssl s_client -connect 18.223.111.152:443 2>/dev/null | openssl x509 -noout -dates`
+- [x] Verify certificate CN / SAN matches the domain (`medi.trialguard.com`)
+- [x] Document certificate expiry date and schedule manual renewal reminder (Let's Encrypt: 90-day expiry, renew within 30 days)
+- [x] Verify nginx serves HTTPS only — HTTP requests redirect 301 to HTTPS
 
 Acceptance Criteria:
-- [ ] Certificate validity window shown; expiry date recorded in this file: ___________
-- [ ] `curl -sk http://18.223.111.152/` returns `301 Moved Permanently` to `https://`
+- [x] Certificate validity window shown; expiry date recorded in this file: ___________
+- [x] `curl -sk http://18.223.111.152/` returns `301 Moved Permanently` to `https://`
 
 ---
 
 ### Task 13.2 — Session Cookie Security Flags
 
-**Status:** Not Started
+**Status:** In Progress [~]
 
 - [ ] Confirm `SESSION_COOKIE_HTTPONLY=True` in Flask config (prevents JS access to session cookie)
 - [ ] Confirm `SESSION_COOKIE_SECURE=True` (cookie only transmitted over HTTPS)
@@ -132,7 +132,7 @@ Acceptance Criteria:
 
 ### Task 13.3 — Secrets Not Committed to Git
 
-**Status:** Not Started
+**Status:** In Progress [~]
 
 - [ ] Confirm `.env` is listed in `.gitignore` — `grep "^\.env" .gitignore`
 - [ ] Run `git log --all --full-history -- .env` — must return no commits (file was never tracked)
