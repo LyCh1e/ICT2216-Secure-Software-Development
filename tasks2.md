@@ -103,7 +103,7 @@ Acceptance Criteria:
 
 ### Task 13.1 — TLS Certificate Validity and Renewal
 
-**Status:** Not Started
+**Status:** Done
 
 - [x] Confirm TLS certificate has not expired: `openssl s_client -connect 18.223.111.152:443 2>/dev/null | openssl x509 -noout -dates`
 - [x] Verify certificate CN / SAN matches the domain (`medi.trialguard.com`)
@@ -120,10 +120,10 @@ Acceptance Criteria:
 
 **Status:** In Progress [~]
 
-- [ ] Confirm `SESSION_COOKIE_HTTPONLY=True` in Flask config (prevents JS access to session cookie)
+- [x] Confirm `SESSION_COOKIE_HTTPONLY=True` in Flask config (prevents JS access to session cookie)
 - [ ] Confirm `SESSION_COOKIE_SECURE=True` (cookie only transmitted over HTTPS)
-- [ ] Confirm `SESSION_COOKIE_SAMESITE='Strict'` (blocks cross-site request inclusion)
-- [ ] Verify flags in browser DevTools → Application → Cookies, or with: `curl -sk -c - https://18.223.111.152/api/auth/login`
+- [x] Confirm `SESSION_COOKIE_SAMESITE='Strict'` (blocks cross-site request inclusion)
+- [x] Verify flags in browser DevTools → Application → Cookies, or with: `curl -sk -c - https://18.223.111.152/api/auth/login`
 
 Acceptance Criteria:
 - [ ] Response `Set-Cookie` header includes `HttpOnly; Secure; SameSite=Strict`
@@ -132,16 +132,16 @@ Acceptance Criteria:
 
 ### Task 13.3 — Secrets Not Committed to Git
 
-**Status:** In Progress [~]
+**Status:** Done
 
-- [ ] Confirm `.env` is listed in `.gitignore` — `grep "^\.env" .gitignore`
-- [ ] Run `git log --all --full-history -- .env` — must return no commits (file was never tracked)
-- [ ] Confirm `nginx/certs/` is in `.gitignore` — TLS private key must never be committed
-- [ ] Scan last 20 commits for accidental secret leakage: `git log -20 --diff-filter=A --name-only`
+- [x] Confirm `.env` is listed in `.gitignore` — `grep "^\.env" .gitignore`
+- [x] Run `git log --all --full-history -- .env` — must return no commits (file was never tracked)
+- [x] Confirm `nginx/certs/` is in `.gitignore` — TLS private key must never be committed
+- [x] Scan last 20 commits for accidental secret leakage: `git log -20 --diff-filter=A --name-only`
 
 Acceptance Criteria:
-- [ ] No `.env` entries in git history
-- [ ] No private key files (`privkey.pem`, `*.key`) in git history
+- [x] No `.env` entries in git history
+- [x] No private key files (`privkey.pem`, `*.key`) in git history
 
 ---
 
