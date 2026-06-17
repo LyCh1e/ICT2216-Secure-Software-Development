@@ -87,13 +87,13 @@ Acceptance Criteria:
 
 **Status:** Not Started
 
-- [ ] Install unattended-upgrades: `sudo apt install unattended-upgrades -y`
-- [ ] Enable automatic security updates: `sudo dpkg-reconfigure --priority=low unattended-upgrades`
-- [ ] Verify configuration is active: `cat /etc/apt/apt.conf.d/20auto-upgrades`
+- [x] Install unattended-upgrades: `sudo apt install unattended-upgrades -y`
+- [x] Enable automatic security updates: `sudo dpkg-reconfigure --priority=low unattended-upgrades`
+- [x] Verify configuration is active: `cat /etc/apt/apt.conf.d/20auto-upgrades`
 
 Acceptance Criteria:
-- [ ] `APT::Periodic::Unattended-Upgrade "1"` present in auto-upgrades config
-- [ ] Security patches applied automatically without manual intervention
+- [x] `APT::Periodic::Unattended-Upgrade "1"` present in auto-upgrades config
+- [x] Security patches applied automatically without manual intervention
 
 ---
 
