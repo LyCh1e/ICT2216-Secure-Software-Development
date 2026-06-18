@@ -70,7 +70,7 @@ Acceptance Criteria:
 
 ### Task 12.3 — Fail2ban on EC2
 
-**Status:** Not Started
+**Status:** Done
 
 - [x] Install Fail2ban: `sudo apt install fail2ban -y`
 - [x] Create `/etc/fail2ban/jail.local` — enable SSH jail, ban after 5 failures for 1 hour
@@ -85,7 +85,7 @@ Acceptance Criteria:
 
 ### Task 12.4 — Automatic Security Updates on EC2
 
-**Status:** Not Started
+**Status:** Done
 
 - [x] Install unattended-upgrades: `sudo apt install unattended-upgrades -y`
 - [x] Enable automatic security updates: `sudo dpkg-reconfigure --priority=low unattended-upgrades`
