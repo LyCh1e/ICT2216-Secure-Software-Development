@@ -179,16 +179,16 @@ Acceptance Criteria:
 
 ### Task 14.1 — bcrypt Cost Factor NFR Verification
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Locate bcrypt cost factor in `backend/app/` config (should be `cost=12`)
-- [ ] Time a single bcrypt hash on the EC2 instance: `python3 -c "import bcrypt, time; s=time.time(); bcrypt.hashpw(b'test', bcrypt.gensalt(12)); print(time.time()-s)"`
-- [ ] Document: cost=12, measured latency=___ ms on t2.micro/EC2 — confirm < 300 ms
-- [ ] Record NFR: "bcrypt cost factor 12 — authentication completes in < 300 ms on EC2 target hardware; per-guess cost > 100 ms for an attacker"
+- [x] Locate bcrypt cost factor in `backend/app/` config (should be `cost=12`)
+- [x] Time a single bcrypt hash on the EC2 instance: `python3 -c "import bcrypt, time; s=time.time(); bcrypt.hashpw(b'test', bcrypt.gensalt(12)); print(time.time()-s)"`
+- [x] Document: cost=12, measured latency=___ ms on t2.micro/EC2 — confirm < 300 ms
+- [x] Record NFR: "bcrypt cost factor 12 — authentication completes in < 300 ms on EC2 target hardware; per-guess cost > 100 ms for an attacker"
 
 Acceptance Criteria:
-- [ ] Cost factor 12 confirmed in code
-- [ ] Authentication latency measured and documented in this file
+- [x] Cost factor 12 confirmed in code
+- [x] Authentication latency measured and documented in this file
 
 ---
 
