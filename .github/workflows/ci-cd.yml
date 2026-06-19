@@ -201,7 +201,7 @@ jobs:
              docker ps -a --filter volume=ict2216-secure-software-development_frontend_dist \
                --format '{{.ID}}' | xargs -r docker rm -f &&
              docker volume rm ict2216-secure-software-development_frontend_dist 2>/dev/null || true &&
-             docker compose up -d 2>&1 | tail -20"
+             docker compose up -d --build 2>&1 | tail -20"
 
       - name: Verify container status
         run: |

@@ -19,6 +19,12 @@ services:
         condition: service_completed_successfully
     networks:
       - internal
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   flask:
@@ -142,6 +148,14 @@ services:
         condition: service_healthy
       vault_db:
         condition: service_healthy
+    healthcheck:
+      # Healthy when at least one backup dump was written in the last ~25h
+      # (daily cycle is 24h) — proves the backup loop is alive.
+      test: ["CMD-SHELL", "find /backups -name '*.sql' -mmin -1500 | grep -q ."]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 2m
     restart: unless-stopped
 
 networks:
