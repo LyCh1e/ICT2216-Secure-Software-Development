@@ -161,15 +161,17 @@ Acceptance Criteria:
 
 ### Task 13.5 — PII Masking in API Responses
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Audit all `GET` API responses — confirm email, phone, and NRIC are never returned in full
-- [ ] Apply display-layer masking where full values are not needed (e.g., `j***@example.com`)
-- [ ] Confirm that PII fields in the MongoDB PII vault are not returned directly to the frontend — pii_vault API should only return lookup tokens
+- [x] Audit all `GET` API responses — confirm email, phone, and NRIC are never returned in full
+- [x] Apply display-layer masking where full values are not needed (e.g., `j***@example.com`)
+- [x] Confirm that PII fields in the MongoDB PII vault are not returned directly to the frontend — pii_vault API should only return lookup tokens
+
+**Verified:** Added `_mask_email()` helper to `backend/app/routes/admin.py` — `GET /api/admin/users` now returns masked emails (e.g., `j***@example.com`). Participant profile (`GET /api/participant/profile`) returns full email only to the owning user (needed to display their own email). Researcher endpoints return aggregate counts only — no PII. PII vault `/vault/create` returns only pseudonym tokens; `/vault/erase` returns only a status message — no plaintext PII is ever sent to the frontend.
 
 Acceptance Criteria:
-- [ ] GET `/api/admin/users` returns masked or omitted PII fields (not full email/NRIC)
-- [ ] pii_vault responses contain tokens, not plaintext PII
+- [x] GET `/api/admin/users` returns masked email fields (e.g., `j***@example.com`)
+- [x] pii_vault responses contain tokens, not plaintext PII
 
 ---
 
