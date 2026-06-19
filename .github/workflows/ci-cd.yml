@@ -162,8 +162,9 @@ jobs:
         run: |
           result=$(ssh -i ~/.ssh/deploy.pem \
             -o StrictHostKeyChecking=no \
+            -o LogLevel=ERROR \
             -o ConnectTimeout=10 \
-            "${{ secrets.EC2_HOST }}" "echo ok" 2>&1)
+            "${{ secrets.EC2_HOST }}" "echo ok")
           if [[ "$result" != "ok" ]]; then
             echo "SSH failed: $result"
             exit 1
@@ -177,12 +178,14 @@ jobs:
         run: |
           scp -i ~/.ssh/deploy.pem \
             -o StrictHostKeyChecking=no \
+            -o LogLevel=ERROR \
             /tmp/app.tar "${{ secrets.EC2_HOST }}:~/trialguard.tar"
 
       - name: Extract on EC2
         run: |
           ssh -i ~/.ssh/deploy.pem \
             -o StrictHostKeyChecking=no \
+            -o LogLevel=ERROR \
             "${{ secrets.EC2_HOST }}" \
             "mkdir -p $REMOTE_DIR && cd $REMOTE_DIR && tar xf ~/trialguard.tar && echo extracted"
 
@@ -190,6 +193,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy.pem \
             -o StrictHostKeyChecking=no \
+            -o LogLevel=ERROR \
             "${{ secrets.EC2_HOST }}" \
             "cd $REMOTE_DIR &&
              docker compose build --no-cache frontend-build &&
@@ -203,6 +207,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy.pem \
             -o StrictHostKeyChecking=no \
+            -o LogLevel=ERROR \
             "${{ secrets.EC2_HOST }}" \
             "cd $REMOTE_DIR && docker compose ps"
 
@@ -210,8 +215,9 @@ jobs:
         run: |
           health=$(ssh -i ~/.ssh/deploy.pem \
             -o StrictHostKeyChecking=no \
+            -o LogLevel=ERROR \
             "${{ secrets.EC2_HOST }}" \
-            "curl -sk https://localhost/api/health" 2>&1)
+            "curl -sk https://localhost/api/health")
           echo "Health response: $health"
 
       - name: Clean up SSH key
