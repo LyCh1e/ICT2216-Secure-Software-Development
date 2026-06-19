@@ -23,6 +23,10 @@ _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_]{3,64}$')
 _LOCKOUT_ATTEMPTS = 5
 _LOCKOUT_MINUTES  = 15
 
+# Pre-computed bcrypt hash used to equalise login timing when the user does not
+# exist — prevents username enumeration via response-time differences (timing oracle).
+_DUMMY_HASH = bcrypt.hashpw(b'timing-equalizer', bcrypt.gensalt(rounds=12))
+
 _REGISTER_FIELDS = frozenset({'username', 'email', 'password'})
 _LOGIN_FIELDS    = frozenset({'identifier', 'password'})
 _MFA_FIELDS      = frozenset({'code'})
@@ -33,7 +37,10 @@ def _extra_fields(data, allowed):
 
 
 def _ip():
-    return request.headers.get('X-Forwarded-For', request.remote_addr)
+    # X-Real-IP is set by nginx to the true client IP ($remote_addr) and is not
+    # client-spoofable, unlike X-Forwarded-For (which appends client-supplied values).
+    # Falls back to remote_addr for local dev without a proxy.
+    return request.headers.get('X-Real-IP') or request.remote_addr
 
 
 def _password_ok(pw):
@@ -135,6 +142,9 @@ def login():
         return jsonify({'error': 'Invalid credentials.'}), 401
 
     if not user:
+        # Run a dummy bcrypt comparison so a non-existent user takes the same time
+        # as a real password check — prevents username enumeration via timing.
+        bcrypt.checkpw(password.encode(), _DUMMY_HASH)
         return _fail()
 
     # Locked — return same generic error as wrong credentials
@@ -151,6 +161,12 @@ def login():
 
     user.failed_login_attempts = 0
     db.session.commit()
+
+    # Require a verified email before issuing any session. Reached only after a
+    # correct password, so it does not leak account existence to anonymous callers.
+    if not user.email_verified:
+        write_audit('login', 'failure', user_id=user.user_id, ip_address=ip)
+        return jsonify({'error': 'Please verify your email address before logging in.'}), 403
 
     session.clear()
     session['mfa_pending_user_id'] = user.user_id

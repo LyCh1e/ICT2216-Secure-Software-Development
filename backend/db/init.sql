@@ -78,8 +78,9 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     entry_hash          VARCHAR(64)     NOT NULL
 );
 
--- App user is created by Docker via MYSQL_USER / MYSQL_PASSWORD env vars.
--- Grant least-privilege here (runs as root on first start).
+-- Docker auto-grants ALL PRIVILEGES to MYSQL_USER on MYSQL_DATABASE.
+-- Revoke that blanket grant, then apply per-table least privilege.
+REVOKE ALL PRIVILEGES ON trialguard.* FROM 'tg_app'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON trialguard.users           TO 'tg_app'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON trialguard.trials          TO 'tg_app'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON trialguard.participants    TO 'tg_app'@'%';

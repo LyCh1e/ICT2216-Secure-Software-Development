@@ -42,6 +42,8 @@ nginx/certs/
 # Powrshell / SSH Scripts
 *.ps1
 *.sh
+# ...but keep version-controlled project scripts under scripts/
+!scripts/*.sh
 
 # EC2 Credentials
 EC2-Access/
