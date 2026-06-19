@@ -17,6 +17,8 @@ class BaseConfig:
         f"/{os.environ['MONGO_DB_NAME']}?authSource=admin"
     )
 
+    RATELIMIT_STORAGE_URI = os.environ['REDIS_URL']
+
     SESSION_COOKIE_HTTPONLY  = True
     SESSION_COOKIE_SECURE    = True
     SESSION_COOKIE_SAMESITE  = 'Strict'
