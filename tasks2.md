@@ -149,15 +149,17 @@ Acceptance Criteria:
 
 ### Task 13.4 — Database Connection Encryption (Transit)
 
-**Status:** Not Started
+**Status:** Deferred — Risk Accepted [!]
 
-- [ ] Verify Flask → MySQL connection uses SSL/TLS (`ssl_ca`, `ssl_cert` in SQLAlchemy URI or connection args)
-- [ ] Verify pii_vault → vault_db connection uses SSL/TLS
-- [ ] If plaintext, add `ssl_args` to SQLAlchemy engine and regenerate MySQL user with `REQUIRE SSL`
-- [ ] Confirm MongoDB connection string includes `tls=true` if used for sensitive data
+- [x] Verify Flask → MySQL connection uses SSL/TLS — **confirmed plaintext** (`backend/config.py:8-11`, `mysql+pymysql://` with no SSL args / `connect_args`)
+- [x] Verify pii_vault → vault_db connection uses SSL/TLS — **confirmed plaintext** (`pii_vault/app.py:21-29`, raw `pymysql.connect` with no `ssl` param)
+- [!] If plaintext, add `ssl_args` to SQLAlchemy engine and regenerate MySQL user with `REQUIRE SSL` — **not implemented; risk accepted (see rationale)**
+- [x] Confirm MongoDB connection string includes `tls=true` if used for sensitive data — not set (`backend/config.py:14-18`); same rationale applies
+
+**Decision — Accepted Residual Risk:** Inter-service DB traffic (Flask↔MySQL, pii_vault↔vault_db, Flask↔MongoDB) is unencrypted in transit. This risk is **accepted** after verifying the deployment topology: the databases are **not external** (e.g. no AWS RDS) — they run as **containers on the same EC2 host** as the application. Evidence: `DB_HOST=mysql`, `MONGO_HOST=mongodb`, `VAULT_DB_HOST=vault_db` resolve to Docker service names, and all DB services use `expose:` (3306/27017) **never `ports:`** in `docker-compose.yml`, so their ports are reachable only on the internal Docker bridge network — never published to the host or the internet. DB traffic therefore never crosses an untrusted/physical network; an attacker would already need code execution inside the Docker network to observe it. Enabling TLS would require forcing SSL on the SQLAlchemy/PyMySQL clients plus `REQUIRE SSL` on the DB users — carrying real outage risk (and the CI/CD health check does not exercise the DB, so a failure could deploy silently green). Given the low residual exposure and proximity to the D2 freeze, this is deferred. **Note:** if the database is ever moved off-host (separate server / managed RDS), this risk must be re-opened and TLS implemented, since traffic would then cross a real network. To be carried into the Phase 20 Residual Risk Assessment.
 
 Acceptance Criteria:
-- [ ] `SHOW STATUS LIKE 'Ssl_cipher'` inside MySQL container returns a non-empty cipher name
+- [!] `SHOW STATUS LIKE 'Ssl_cipher'` returns a non-empty cipher — N/A (risk accepted; connection intentionally left plaintext on the internal-only Docker network)
 
 ---
 
@@ -270,7 +272,7 @@ Acceptance Criteria:
 
 **Status:** Not Started
 
-- [ ] Confirm db-backup service is running and producing dumps: `ls -lh /var/lib/docker/volumes/trialguard_db_backups/_data/`
+- [ ] Confirm db-backup service is running and producing dumps: `ls -lh /var/lib/docker/volumes/ict2216-secure-software-development_db_backups/_data/`
 - [ ] Verify rotation: at most 7 backup files are retained
 - [ ] Perform a restore test: spin up a temporary MySQL container, restore from the latest dump, confirm data integrity
 - [ ] Document recovery procedure in a runbook comment in this file
@@ -405,12 +407,12 @@ Acceptance Criteria:
 **Status:** Not Started
 
 - [ ] Inspect Dockerfile: confirm a non-root user is created and set with `USER`
-- [ ] Verify in running container: `docker exec trialguard-flask-1 whoami` — must not return `root`
+- [ ] Verify in running container: `docker exec ict2216-secure-software-development-flask-1 whoami` — must not return `root`
 - [ ] Apply the same check to the pii_vault container
 
 Acceptance Criteria:
-- [ ] `docker exec trialguard-flask-1 whoami` returns a non-root username
-- [ ] `docker exec trialguard-pii_vault-1 whoami` returns a non-root username
+- [ ] `docker exec ict2216-secure-software-development-flask-1 whoami` returns a non-root username
+- [ ] `docker exec ict2216-secure-software-development-pii_vault-1 whoami` returns a non-root username
 
 ---
 
@@ -436,9 +438,9 @@ Acceptance Criteria:
 
 **Status:** Not Started
 
-- [ ] Inspect Flask application logs on EC2: `docker logs trialguard-flask-1 2>&1 | head -100`
+- [ ] Inspect Flask application logs on EC2: `docker logs ict2216-secure-software-development-flask-1 2>&1 | head -100`
 - [ ] Confirm no passwords, TOTP codes, session tokens, or full email addresses appear in stdout
-- [ ] Inspect pii_vault logs: `docker logs trialguard-pii_vault-1 2>&1 | head -100`
+- [ ] Inspect pii_vault logs: `docker logs ict2216-secure-software-development-pii_vault-1 2>&1 | head -100`
 - [ ] Confirm nginx access logs do not log request bodies (POST body with credentials)
 
 Acceptance Criteria:
@@ -462,7 +464,7 @@ Acceptance Criteria:
 - [ ] Define retention policy for the MySQL audit_log table: decide after how many days old entries are archived or purged, and document the decision here: ___________
 
 Acceptance Criteria:
-- [ ] `docker inspect trialguard-flask-1 | grep -A5 LogConfig` shows json-file driver with size limit
+- [ ] `docker inspect ict2216-secure-software-development-flask-1 | grep -A5 LogConfig` shows json-file driver with size limit
 - [ ] Retention policy documented above
 
 ---
@@ -475,7 +477,7 @@ Each item below is a verification checkpoint — confirm the principle is upheld
 
 ### Task 19.1 — Minimise Attack Surface
 
-- [ ] Run `docker exec trialguard-nginx-1 nginx -T | grep "location"` — list all exposed endpoints
+- [ ] Run `docker exec ict2216-secure-software-development-nginx-1 nginx -T | grep "location"` — list all exposed endpoints
 - [ ] Confirm no debug or test routes are accessible in production (`/api/debug`, `/test`, `/admin/seed`)
 - [ ] Confirm MongoDB is not exposed on any public port (`docker compose ps` — port 27017 must not be published)
 
