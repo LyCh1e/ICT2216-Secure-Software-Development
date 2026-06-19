@@ -52,19 +52,19 @@ Acceptance Criteria:
 
 ### Task 12.2 — Flask-Limiter Persistent Storage (Redis)
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Add `redis` service to `docker-compose.yml` — internal only, no exposed port
-- [ ] Add `redis` dependency to Flask service
-- [ ] Add `Flask-Limiter[redis]` and `redis` to `requirements.txt`
-- [ ] Update `backend/app/extensions.py` — configure Flask-Limiter to use Redis URI
-- [ ] Add `REDIS_URL=redis://redis:6379` to `.env.template` and EC2 `.env`
-- [ ] Rebuild and verify warning about in-memory storage is gone from Flask logs
+- [x] Add `redis` service to `docker-compose.yml` — internal only, no exposed port
+- [x] Add `redis` dependency to Flask service
+- [x] Add `Flask-Limiter[redis]` and `redis` to `requirements.txt`
+- [x] Update `backend/app/extensions.py` — configure Flask-Limiter to use Redis URI
+- [x] Add `REDIS_URL=redis://redis:6379` to `.env.template` and EC2 `.env`
+- [x] Rebuild and verify warning about in-memory storage is gone from Flask logs
 
 Acceptance Criteria:
-- [ ] Flask logs no longer show `UserWarning: Using the in-memory storage for tracking rate limits`
-- [ ] Rate limits persist across Flask container restarts
-- [ ] Redis container is not reachable from outside the Docker network
+- [x] Flask logs no longer show `UserWarning: Using the in-memory storage for tracking rate limits`
+- [x] Rate limits persist across Flask container restarts
+- [x] Redis container is not reachable from outside the Docker network
 
 ---
 
