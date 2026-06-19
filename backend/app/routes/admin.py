@@ -21,6 +21,17 @@ _FIELD_MAX_LENS = {
 }
 
 
+def _mask_email(email):
+    if not email or '@' not in email:
+        return '***'
+    local, domain = email.rsplit('@', 1)
+    if len(local) <= 1:
+        masked_local = '*'
+    else:
+        masked_local = local[0] + '***'
+    return f'{masked_local}@{domain}'
+
+
 def _extra_fields(data, allowed):
     return set(data.keys()) - allowed
 
@@ -38,7 +49,7 @@ def list_users():
     return jsonify([{
         'user_id':        u.user_id,
         'username':       u.username,
-        'email':          u.email,
+        'email':          _mask_email(u.email),
         'role':           u.role,
         'email_verified': u.email_verified,
         'mfa_enabled':    u.mfa_enabled,
