@@ -388,31 +388,35 @@ Acceptance Criteria:
 
 ### Task 17.2 — Database Service Account Least Privilege
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Confirm Flask DB user is NOT the MySQL root account
-- [ ] Run `SHOW GRANTS FOR 'flask_user'@'%'` — list actual permissions
-- [ ] Remove any unnecessary grants (e.g., DROP, CREATE, GRANT OPTION)
-- [ ] Flask DB user should have: SELECT, INSERT, UPDATE, DELETE on the application database only
-- [ ] Audit log table: Flask DB user should have INSERT only (no UPDATE/DELETE — append-only)
+- [x] Confirm Flask DB user is NOT the MySQL root account — app uses `tg_app`@`%` (see `backend/config.py:8-11`, `DB_USER`)
+- [x] Run `SHOW GRANTS FOR 'tg_app'@'%'` — list actual permissions
+- [x] Remove any unnecessary grants (e.g., DROP, CREATE, GRANT OPTION)
+- [x] Flask DB user should have: SELECT, INSERT, UPDATE, DELETE on the application database only
+- [x] Audit log table: Flask DB user should have INSERT only (no UPDATE/DELETE — append-only)
+
+**Verified (V&V finding + live remediation):** `init.sql:83-89` already defines the correct least-privilege grants, but `SHOW GRANTS` on the live DB revealed `GRANT ALL PRIVILEGES ON trialguard.* TO 'tg_app'@'%'` was **still present** — because `docker-entrypoint-initdb.d/init.sql` only runs on first DB init, and the live `mysql_data` volume predated the REVOKE. Remediated directly on the live DB (REVOKE ALL on `trialguard.*` + re-apply per-table grants; persists in the volume). Post-fix `SHOW GRANTS` shows only `USAGE`, per-table DML on users/trials/participants/consent_records, and **SELECT,INSERT only on audit_logs**. Confirmed app stayed healthy. Append-only proven live: `DELETE FROM audit_logs` as `tg_app` returns `ERROR 1142: DELETE command denied` — the app account cannot tamper with the audit log (also reinforces Task 14.2).
 
 Acceptance Criteria:
-- [ ] Flask DB user grants confirmed — no root-level or DDL permissions
-- [ ] Audit log table: INSERT only for Flask DB user
+- [x] Flask DB user grants confirmed — no root-level or DDL permissions
+- [x] Audit log table: INSERT only for Flask DB user (DELETE denied — `ERROR 1142`)
 
 ---
 
 ### Task 17.3 — Flask Container Runs as Non-Root
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Inspect Dockerfile: confirm a non-root user is created and set with `USER`
-- [ ] Verify in running container: `docker exec ict2216-secure-software-development-flask-1 whoami` — must not return `root`
-- [ ] Apply the same check to the pii_vault container
+- [x] Inspect Dockerfile: confirm a non-root user is created and set with `USER`
+- [x] Verify in running container: `docker exec ict2216-secure-software-development-flask-1 whoami` — must not return `root`
+- [x] Apply the same check to the pii_vault container
+
+**Verified:** `backend/Dockerfile:3,13` creates `appuser` (`groupadd -r appuser && useradd -r -g appuser appuser`) and sets `USER appuser`; `pii_vault/Dockerfile:3,13` does the same for `vaultuser`. Live check: `docker exec ...-flask-1 whoami` → `appuser`, `...-pii_vault-1 whoami` → `vaultuser`. Neither container runs as root.
 
 Acceptance Criteria:
-- [ ] `docker exec ict2216-secure-software-development-flask-1 whoami` returns a non-root username
-- [ ] `docker exec ict2216-secure-software-development-pii_vault-1 whoami` returns a non-root username
+- [x] `docker exec ict2216-secure-software-development-flask-1 whoami` returns a non-root username (`appuser`)
+- [x] `docker exec ict2216-secure-software-development-pii_vault-1 whoami` returns a non-root username (`vaultuser`)
 
 ---
 
