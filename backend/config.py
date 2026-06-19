@@ -33,6 +33,5 @@ class DevelopmentConfig(BaseConfig):
     DEBUG = True
     SESSION_COOKIE_SECURE = False  # No HTTPS in local dev
 
-
 class ProductionConfig(BaseConfig):
     DEBUG = False
