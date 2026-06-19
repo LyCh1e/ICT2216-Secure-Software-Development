@@ -118,15 +118,17 @@ Acceptance Criteria:
 
 ### Task 13.2 — Session Cookie Security Flags
 
-**Status:** In Progress [~]
+**Status:** Done
 
 - [x] Confirm `SESSION_COOKIE_HTTPONLY=True` in Flask config (prevents JS access to session cookie)
-- [ ] Confirm `SESSION_COOKIE_SECURE=True` (cookie only transmitted over HTTPS)
+- [x] Confirm `SESSION_COOKIE_SECURE=True` (cookie only transmitted over HTTPS)
 - [x] Confirm `SESSION_COOKIE_SAMESITE='Strict'` (blocks cross-site request inclusion)
-- [x] Verify flags in browser DevTools → Application → Cookies, or with: `curl -sk -c - https://18.223.111.152/api/auth/login`
+- [x] Verify flags in browser DevTools → Application → Cookies, or with: `curl -sk -D - https://18.223.111.152/api/auth/csrf-token`
+
+**Verified:** All three flags set in `backend/config.py:20-22` (`BaseConfig`). Config is selected by `FLASK_ENV` in `backend/app/__init__.py:11-12` — `DevelopmentConfig` overrides `SESSION_COOKIE_SECURE=False` (config.py:34) for local HTTP dev. Root cause found: the live EC2 `.env` had `FLASK_ENV=development`, so the public server loaded `DevelopmentConfig` — disabling the `Secure` flag AND running with `DEBUG=True` + dev CORS. Fixed by setting `FLASK_ENV=production` in `~/ICT2216-Secure-Software-Development/.env` and recreating the flask container. Confirmed live `Set-Cookie: session=...; Secure; HttpOnly; Path=/; SameSite=Strict`.
 
 Acceptance Criteria:
-- [ ] Response `Set-Cookie` header includes `HttpOnly; Secure; SameSite=Strict`
+- [x] Response `Set-Cookie` header includes `HttpOnly; Secure; SameSite=Strict`
 
 ---
 
