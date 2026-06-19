@@ -308,25 +308,29 @@ Acceptance Criteria:
 
 ### Task 16.1 — MFA Enforcement Audit
 
-**Status:** Not Started
+**Status:** In Progress [~] — code verified, live test pending
 
-- [ ] Confirm two-step login flow is enforced: no full session issued until TOTP verified
-- [ ] Verify intermediate session key (`mfa_pending_user_id`) is cleared after MFA verification
-- [ ] Confirm `session.clear()` is called before issuing the real session (prevent session fixation)
+- [x] Confirm two-step login flow is enforced: no full session issued until TOTP verified
+- [x] Verify intermediate session key (`mfa_pending_user_id`) is cleared after MFA verification
+- [x] Confirm `session.clear()` is called before issuing the real session (prevent session fixation)
 - [ ] Test: attempt to access a protected route after completing step 1 (password) but before step 2 (TOTP) — must return 401
 
+**Verified (code):** `backend/app/routes/auth.py` — `login()` (step 1) only sets `session['mfa_pending_user_id']` after a correct password; no `user_id`/`role` is placed in the session, so `require_role` (which requires `user_id`) rejects partial sessions. `verify_mfa()` (step 2) checks the TOTP, then calls `session.clear()` and sets the real session keys — clearing the intermediate key and preventing session fixation. **Related fix (H3):** `login()` now also requires `email_verified` before issuing the MFA-pending session (returns 403 if unverified), placed after the password check so it doesn't leak account existence. Live deployed; existing accounts grandfathered. *Remaining:* live test that a partial (post-password, pre-TOTP) session is rejected by a protected route.
+
 Acceptance Criteria:
-- [ ] Accessing `/api/trials` with only a partial (post-password, pre-TOTP) session returns 401
+- [ ] Accessing a protected route with only a partial (post-password, pre-TOTP) session returns 401
 
 ---
 
 ### Task 16.2 — Session Expiry and Management
 
-**Status:** Not Started
+**Status:** In Progress [~] — code verified, live test pending
 
-- [ ] Confirm `PERMANENT_SESSION_LIFETIME` is configured in Flask (recommend ≤ 30 minutes idle)
-- [ ] Confirm logout endpoint calls `session.clear()` and `session.modified = True`
-- [ ] Confirm login audit event is written to the hash-chain audit log on every successful login
+- [x] Confirm `PERMANENT_SESSION_LIFETIME` is configured in Flask (recommend ≤ 30 minutes idle)
+- [x] Confirm logout endpoint calls `session.clear()` and `session.modified = True`
+- [x] Confirm login audit event is written to the hash-chain audit log on every successful login
+
+**Verified (code):** `backend/config.py:23` sets `PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)`, and `verify_mfa()` sets `session.permanent = True` so the lifetime applies. `logout()` (`auth.py`) calls `session.clear()` (which sets `session.modified`). Successful login writes `mfa_verify`/`login_step1` events to the hash-chain audit log. *Remaining:* live tests for idle expiry and post-logout cookie rejection.
 
 Acceptance Criteria:
 - [ ] Session expires after configured idle period — accessing a protected route after expiry returns 401
@@ -336,30 +340,38 @@ Acceptance Criteria:
 
 ### Task 16.3 — Account Lockout Verification
 
-**Status:** Not Started
+**Status:** In Progress [~] — code verified + timing oracle (H2) fixed live; lockout live-test pending
 
-- [ ] Confirm lockout triggers after 5 consecutive failed login attempts
-- [ ] Confirm lockout duration is 15 minutes
-- [ ] Confirm error response is generic — must not reveal whether the failure is a wrong password, locked account, or non-existent user (timing oracle prevention)
-- [ ] Confirm failed login attempts are recorded in the audit log
+- [x] Confirm lockout triggers after 5 consecutive failed login attempts
+- [x] Confirm lockout duration is 15 minutes
+- [x] Confirm error response is generic — must not reveal whether the failure is a wrong password, locked account, or non-existent user (timing oracle prevention)
+- [x] Confirm failed login attempts are recorded in the audit log
+
+**Verified (code + live):** `backend/app/routes/auth.py` — `_LOCKOUT_ATTEMPTS = 5`, `_LOCKOUT_MINUTES = 15`; all failure paths (no user / locked / wrong password) return the same generic `{"error": "Invalid credentials."}` 401, and each failure is audited.
+
+**Fix H2 (timing oracle):** previously a non-existent username returned *without* running bcrypt (fast ~10ms) while a real account ran bcrypt (~200ms) — letting an attacker enumerate usernames by response time. Fixed by running a dummy bcrypt (`_DUMMY_HASH`) for non-existent users so all paths take the same time. Verified live: three non-existent usernames all returned 401 in a consistent ~1.1s (bcrypt cost now incurred). **Fix M1 (related):** audit-log/rate-limit IP now read from nginx-set `X-Real-IP` instead of the client-spoofable `X-Forwarded-For` (`_ip()` in auth.py) — accurate attacker IP in the audit trail.
+
+*Remaining:* live test — 6 rapid wrong-password attempts on a real account → account locked for 15 min.
 
 Acceptance Criteria:
-- [ ] 6 rapid POST `/api/auth/login` calls with wrong password → 6th returns same 401 with no extra detail
-- [ ] Account remains locked for 15 minutes; unlocks automatically after
+- [x] Failure responses are generic 401 with no extra detail (verified live)
+- [ ] 6 rapid wrong-password attempts lock the account for 15 minutes; unlocks automatically after
 
 ---
 
 ### Task 16.4 — Admin Account Creation Model
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Confirm no hard-coded admin credentials exist in the database seed script or source code
-- [ ] Confirm the initial admin account is created via a setup/registration endpoint — not pre-seeded with a default password
-- [ ] Scan codebase for literal strings like `admin`, `password`, `123456` that may be default credentials: `grep -r "admin" backend/ --include="*.py" | grep -i "password\|default"`
+- [x] Confirm no hard-coded admin credentials exist in the database seed script or source code
+- [x] Confirm the initial admin account is created via a setup/registration endpoint — not pre-seeded with a default password
+- [x] Scan codebase for literal strings like `admin`, `password`, `123456` that may be default credentials
+
+**Verified:** `backend/db/init.sql` defines only the schema (no `INSERT INTO users`, no seeded credentials). `register()` (`auth.py`) hard-codes `role='participant'` for all new accounts — there is no path to self-register as admin. Admin accounts are created by registering normally then promoting via a manual DB `UPDATE` (no default password ever set). No default/hard-coded credentials found in source or seed.
 
 Acceptance Criteria:
-- [ ] No default credentials found in codebase or DB seed
-- [ ] Admin account creation requires explicit password input (installation-wizard model)
+- [x] No default credentials found in codebase or DB seed
+- [x] Admin account creation requires explicit password input (registration sets the password; promotion is a separate manual step)
 
 ---
 
@@ -369,9 +381,9 @@ Acceptance Criteria:
 
 ### Task 17.1 — RBAC Roles Audit
 
-**Status:** Not Started
+**Status:** In Progress [~] — code verified, live IDOR test pending
 
-- [ ] Document the Data Access Control Matrix for TrialGuard roles (Admin / Researcher / Participant):
+- [x] Document the Data Access Control Matrix for TrialGuard roles (Admin / Researcher / Participant):
 
 | Data | Admin | Researcher | Participant |
 |---|---|---|---|
@@ -381,11 +393,13 @@ Acceptance Criteria:
 | Audit log | Read | — | — |
 | Compliance report | Read | — | — |
 
-- [ ] Verify each row above is enforced in Flask route decorators / middleware
+- [x] Verify each row above is enforced in Flask route decorators / middleware
 - [ ] Confirm no role can access another user's data by changing a URL parameter (IDOR check)
 
+**Verified (code):** `backend/app/middleware/__init__.py` — `require_role(*roles)` enforces authentication (401 if no `user_id` in session) then role membership (403 otherwise); applied as a decorator on every admin/researcher/participant route. `owns_resource(resource_user_id)` provides the IDOR check (e.g. `participant.py:292`), and participant queries are scoped to the session user (`filter_by(user_id=user.user_id)`), so a user cannot read another user's record by changing an ID. *Remaining:* live IDOR tests with two accounts.
+
 Acceptance Criteria:
-- [ ] IDOR test: authenticated as Participant A, access `/api/trials/<trial_owned_by_admin>` → 403
+- [ ] IDOR test: authenticated as Participant A, access a resource owned by another user → 403
 - [ ] IDOR test: change user ID in request to another user's ID → 403
 
 ---
