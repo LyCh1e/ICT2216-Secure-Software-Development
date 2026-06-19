@@ -257,14 +257,18 @@ Acceptance Criteria:
 
 ### Task 15.1 — Container Health Check Verification
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Confirm `healthcheck` blocks are defined in `docker-compose.yml` for: flask, pii_vault, mysql, vault_db, mongodb, nginx, db-backup
-- [ ] Verify nginx depends on `flask: service_healthy` (nginx waits for Flask before accepting traffic)
-- [ ] Run `docker compose ps` on EC2 — all 7 containers must show `(healthy)` status
+- [x] Confirm `healthcheck` blocks are defined in `docker-compose.yml` for: flask, pii_vault, mysql, vault_db, mongodb, nginx, db-backup
+- [x] Verify nginx depends on `flask: service_healthy` (nginx waits for Flask before accepting traffic)
+- [x] Run `docker compose ps` on EC2 — all 7 containers must show `(healthy)` status
+
+**Verified:** flask/pii_vault/mysql/vault_db/mongodb already had healthchecks. Added two missing ones: **nginx** (`docker-compose.yml` — `wget --spider http://127.0.0.1/healthz`, backed by a new internal `location = /healthz` returning HTTP 200 in `nginx/nginx.conf`, which bypasses the HTTP→HTTPS redirect) and **db-backup** (`find /backups -name '*.sql' -mmin -1500` — healthy only if a dump was written in the last ~25h, proving the daily backup loop is alive). `nginx` still `depends_on: flask: service_healthy`. Live `docker compose ps` shows **all 7 containers `(healthy)`**.
+
+**Note (CI fix that unblocked this):** the nginx config is baked into the image via `COPY` in `nginx/Dockerfile`, but the CI deploy ran `docker compose up -d` without `--build`, so image changes (nginx config, flask code) never reached EC2 — live images were 6 days stale. Fixed `ci-cd.yml` deploy step to `docker compose up -d --build`. This also brought previously-undeployed work live (e.g. 12.1 nginx hardening headers, 13.5 PII masking) — verified `Permissions-Policy`/`X-Frame-Options`/`X-Content-Type-Options` headers now present on live responses.
 
 Acceptance Criteria:
-- [ ] `docker compose ps` output shows `healthy` for all 7 services
+- [x] `docker compose ps` output shows `healthy` for all 7 services
 
 ---
 
