@@ -475,15 +475,15 @@ Acceptance Criteria:
 
 ### Task 18.2 — No PII or Credentials in Application Logs
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Inspect Flask application logs on EC2: `docker logs ict2216-secure-software-development-flask-1 2>&1 | head -100`
-- [ ] Confirm no passwords, TOTP codes, session tokens, or full email addresses appear in stdout
-- [ ] Inspect pii_vault logs: `docker logs ict2216-secure-software-development-pii_vault-1 2>&1 | head -100`
-- [ ] Confirm nginx access logs do not log request bodies (POST body with credentials)
+- [x] Inspect Flask application logs on EC2: `docker logs ict2216-secure-software-development-flask-1 2>&1 | head -100`
+- [x] Confirm no passwords, TOTP codes, session tokens, or full email addresses appear in stdout
+- [x] Inspect pii_vault logs: `docker logs ict2216-secure-software-development-pii_vault-1 2>&1 | head -100`
+- [x] Confirm nginx access logs do not log request bodies (POST body with credentials)
 
 Acceptance Criteria:
-- [ ] Manual review of last 100 log lines shows no passwords, tokens, or raw PII
+- [x] Manual review of last 100 log lines shows no passwords, tokens, or raw PII
 
 ---
 
