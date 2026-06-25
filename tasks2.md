@@ -516,9 +516,9 @@ Each item below is a verification checkpoint — confirm the principle is upheld
 
 ### Task 19.1 — Minimise Attack Surface
 
-- [ ] Run `docker exec ict2216-secure-software-development-nginx-1 nginx -T | grep "location"` — list all exposed endpoints
+- [x] Run `docker exec ict2216-secure-software-development-nginx-1 nginx -T | grep "location"` — list all exposed endpoints
 - [ ] Confirm no debug or test routes are accessible in production (`/api/debug`, `/test`, `/admin/seed`)
-- [ ] Confirm MongoDB is not exposed on any public port (`docker compose ps` — port 27017 must not be published)
+- [x] Confirm MongoDB is not exposed on any public port (`docker compose ps` — port 27017 must not be published)
 
 ### Task 19.2 — Secure Defaults
 
