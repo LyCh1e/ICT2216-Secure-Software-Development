@@ -8,30 +8,99 @@ A secure clinical trial participant portal built for ICT2216 Secure Software Dev
 |-------|-----------|
 | Frontend | React 18 + Vite 6 |
 | Backend | Python Flask 3 (Gunicorn) |
+| Session / rate-limit store | Redis 7 |
 | App database | MySQL 8.0 (structured data, sessions, audit log) |
 | Health telemetry | MongoDB 7.0 (time-series health data, pseudonym-keyed) |
 | PII vault | Isolated Flask microservice + separate MySQL DB |
 | Reverse proxy | nginx 1.27 (HTTPS termination, rate limiting, security headers) |
+| Backups | Automated daily MySQL dump service (7-day rotation) |
 | Containerisation | Docker + Docker Compose |
 
-All services run in an internal Docker network. Only nginx is exposed to the internet (ports 80 and 443). MySQL, MongoDB, and the PII vault are never reachable from outside the container network.
+All services run in an internal Docker network. Only nginx is exposed to the internet (ports 80 and 443). MySQL, MongoDB, Redis, and the PII vault are never reachable from outside the container network.
 
 ## Security controls
 
 | Control | Implementation |
 |---------|---------------|
 | Pseudonymisation | Per-participant salted HMAC-SHA256 token; real identity stored only in isolated PII vault |
-| Authentication | bcrypt (cost 12) passwords + TOTP MFA (pyotp) |
-| Account lockout | 5 failed attempts → 15-minute lockout |
-| Session security | HttpOnly, Secure, SameSite=Strict cookies; 30-min inactivity timeout; session ID regenerated on login |
+| PII encryption at rest | AES-256-GCM in the PII vault |
+| Authentication | bcrypt (cost 12) passwords + TOTP MFA (pyotp); QR code provisioned at registration |
+| Email verification | SHA-256 token link, 24 h expiry, before portal access is granted |
+| Account lockout | 5 failed attempts → 15-minute lockout; timing oracle mitigation via dummy bcrypt check |
+| Session security | HttpOnly, Secure, SameSite=Strict cookies; 30-min inactivity timeout; session ID regenerated on login (fixation prevention) |
 | RBAC | Server-side role enforcement on every endpoint; three roles: participant, researcher, admin |
 | IDOR protection | Every resource access validated against session user_id |
-| CSRF protection | Flask-WTF on all state-changing requests |
-| Rate limiting | 10 req/min on login, 5 req/min on register (nginx + Flask-Limiter) |
+| CSRF protection | Flask-WTF token on all state-changing requests; CSRF token endpoint for SPA clients |
+| Rate limiting | Redis-backed Flask-Limiter; 10 req/min login, 5 req/min register, 3/hr resend-verification |
 | Audit log | Append-only, tamper-evident hash chain (SHA-256 prev_hash chaining); INSERT-only DB privilege |
 | PII erasure | Automated erasure pipeline on participant withdrawal; vault nulls all PII fields |
 | HTTPS | Self-signed TLS on nginx; HTTP → HTTPS redirect enforced |
 | Security headers | HSTS, X-Frame-Options DENY, X-Content-Type-Options nosniff, CSP default-src 'self', Referrer-Policy no-referrer |
+| Password policy | Min 8 chars; uppercase, lowercase, digit, special character required |
+| Email masking | Admin user list shows `f***@domain.com` — no enumeration of real addresses |
+| Researcher isolation | Aggregate stats only (counts/percentages); no individual participant records or pseudonym tokens |
+
+## Features by role
+
+### Participant
+- Register with username, email, and password; scan TOTP QR code for MFA setup
+- Verify email via link before portal access
+- Two-step login (credentials → TOTP)
+- Browse recruiting trials and apply with e-consent (consent version + digital signature)
+- Submit health telemetry (9 measurement types with clinical-range validation, ISO 8601 timestamps)
+- View and update profile (email/password with current-password re-verification)
+- Withdraw from a trial (triggers PII erasure callback to vault)
+
+### Researcher
+- View all trials with aggregate cohort statistics (enrolled, active, withdrawn, withdrawal rate %)
+- No access to individual participant records or pseudonym tokens
+
+### Admin
+- List users with masked emails; suspend or reactivate accounts; change roles
+- Create trials (title, description, phase, sponsor, duration, stipend, risk level, spots, location)
+- View paginated, hash-chained audit log
+- Export compliance report (users by role, trials by status/risk, participants by consent status, audit stats)
+
+## API endpoints
+
+### Auth (`/api/auth`)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/csrf-token` | Fetch CSRF token |
+| POST | `/register` | Register; returns TOTP URI |
+| POST | `/login` | Step 1 — credentials |
+| POST | `/verify-mfa` | Step 2 — TOTP code; issues session |
+| POST | `/logout` | Invalidate session |
+| GET | `/verify-email` | Confirm email via token link |
+| POST | `/resend-verification` | Resend verification email |
+
+### Participant (`/api`)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/trials` | List recruiting trials (public) |
+| GET | `/participant/profile` | Own profile and enrolment status |
+| PUT | `/participant/profile` | Update email / password |
+| POST | `/trials/<id>/apply` | Enrol with e-consent |
+| POST | `/health/submit` | Submit health telemetry |
+| POST | `/trials/<id>/withdraw` | Withdraw; triggers PII erasure |
+
+### Researcher (`/api/researcher`)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/trials` | All trials metadata |
+| GET | `/trials/<id>/stats` | Aggregate cohort statistics |
+
+### Admin (`/api/admin`)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/users` | All users (emails masked) |
+| POST | `/users/<id>/suspend` | Suspend account |
+| POST | `/users/<id>/activate` | Reactivate account |
+| POST | `/users/<id>/role` | Change role |
+| GET | `/trials` | All trials |
+| POST | `/trials` | Create trial |
+| GET | `/audit-log` | Paginated audit log |
+| GET | `/compliance-report` | Aggregated compliance export |
 
 ## Quick start (Docker)
 
@@ -96,48 +165,73 @@ Set the required environment variables from `.env.template` before running Flask
 ## Project structure
 
 ```
-start.py                    ← One-command launcher (builds, starts, opens browser)
-docker-compose.yml          ← All 6 services
-.env.template               ← Required environment variables (copy to .env)
-requirements.txt            ← Python dependencies (backend + pii_vault)
-tasks.md                    ← Implementation checklist
+start.py                          ← One-command launcher (builds, starts, opens browser)
+docker-compose.yml                ← All 9 services
+.env.template                     ← Required environment variables (copy to .env)
+requirements.txt                  ← Python dependencies (backend + pii_vault)
+tasks.md                          ← Implementation checklist
 
-frontend/                   ← React 18 + Vite 6
+.github/
+  workflows/
+    ci-cd.yml                     ← 6-job CI/CD pipeline (lint → SAST → CodeQL → deploy)
+
+frontend/                         ← React 18 + Vite 6
+  media/
+    cohort.gif                    ← Researcher cohort dashboard demo
   src/
-    pages/                  ← Landing, Login, Signup, PatientPortal, ResearcherPortal, AdminPortal
-    components/             ← Shared UI, portal shell
-    data/                   ← Static seed data for UI prototype
-    styles/                 ← CSS custom properties
+    pages/
+      Landing.jsx                 ← Public home page
+      Signup.jsx                  ← Registration + TOTP QR code
+      Login.jsx                   ← Two-step login (credentials → TOTP)
+      VerifyEmail.jsx             ← Email token confirmation
+      PatientPortal.jsx           ← Participant dashboard (profile / trials / health / privacy)
+      ResearcherPortal.jsx        ← Researcher dashboard (trials + aggregate stats)
+      AdminPortal.jsx             ← Admin dashboard (users / trials / audit / compliance)
+      Trials.jsx                  ← Public trial listing
+      Researchers.jsx             ← Researcher info page
+      Faq.jsx                     ← FAQ
+      Privacy.jsx                 ← Privacy policy
+    components/
+      shared.jsx                  ← Reusable UI primitives (buttons, modals, alerts, PhotoSlot)
+      portal-shell.jsx            ← Authenticated portal wrapper (navbar, sidebar, logout)
+      subpage-shell.jsx           ← Sub-page wrapper (nav + footer)
+    data/                         ← Static seed data for UI prototype
+    styles/                       ← CSS custom properties
 
-backend/                    ← Flask app
+backend/                          ← Flask app
   app/
-    __init__.py             ← App factory (create_app)
-    extensions.py           ← SQLAlchemy, PyMongo, CSRF, Limiter, CORS
-    models/models.py        ← User, Trial, Participant, ConsentRecord, AuditLog
+    __init__.py                   ← App factory (create_app)
+    extensions.py                 ← SQLAlchemy, PyMongo, Redis, CSRF, Limiter, CORS
+    models/models.py              ← User, Trial, Participant, ConsentRecord, AuditLog
     routes/
-      auth.py               ← /api/auth — register, login, MFA, logout
-      participant.py        ← /api — participant endpoints
-      researcher.py         ← /api/researcher — aggregate stats only
-      admin.py              ← /api/admin — user/trial management, audit log
-  db/init.sql               ← MySQL schema (runs on first container start)
-  config.py                 ← Dev/prod config from environment variables
+      auth.py                     ← /api/auth — register, login, MFA, logout, email verify
+      participant.py              ← /api — participant endpoints
+      researcher.py               ← /api/researcher — aggregate stats only
+      admin.py                    ← /api/admin — user/trial management, audit log, compliance
+  db/init.sql                     ← MySQL schema (runs on first container start)
+  config.py                       ← Dev/prod config from environment variables
 
-pii_vault/                  ← Isolated PII microservice
-  app.py                    ← Vault Flask app (shared-secret auth)
-  db/init.sql               ← Vault MySQL schema
+pii_vault/                        ← Isolated PII microservice
+  app.py                          ← Vault Flask app (shared-secret auth, AES-256-GCM)
+  db/init.sql                     ← Vault MySQL schema
 
 nginx/
-  nginx.conf                ← Reverse proxy, TLS, rate limiting, security headers
+  nginx.conf                      ← Reverse proxy, TLS, rate limiting, security headers
   Dockerfile
+
+diagrams/                         ← Architecture and data-flow diagrams
 ```
 
-## Roles
+## CI/CD pipeline
 
-| Role | Portal | Access |
-|------|--------|--------|
-| Participant | `/patient` | Own profile, enrolled trials, health data submission, withdrawal |
-| Researcher | `/researcher` | Aggregate trial stats only — no individual records |
-| Admin | `/admin` | User management, trial management, audit log (read-only on clinical data) |
+| Job | What it does |
+|-----|-------------|
+| `backend-ci` | flake8 lint (hard-fail on syntax/undefined-name) + pytest |
+| `frontend-ci` | ESLint + Vite build; uploads dist as artifact |
+| `eslint-sast` | ESLint with SARIF output → GitHub Code Scanning + artifact upload |
+| `codeql-analysis` | GitHub CodeQL semantic analysis (JavaScript) |
+| `security-scan` | Bandit (Python SAST) + npm audit + OWASP Dependency-Check; uploads reports |
+| `deploy` | SSH → `git archive` → SCP → `docker compose up` → health check (main branch only) |
 
 ## Deployment
 
@@ -169,7 +263,7 @@ ssh -i $PEM $HOST "cd ~/ICT2216-Secure-Software-Development && tar xf ~/trialgua
 # 4. If docker-compose.yml or nginx config changed, push it directly too:
 scp -i $PEM docker-compose.yml "${HOST}:~/ICT2216-Secure-Software-Development/docker-compose.yml"
 
-# 5. Force-rebuild frontend (no cache), force-remove stale containers, purge volume, restart, this is if the frontend changes do not appear
+# 5. Force-rebuild frontend (no cache), force-remove stale containers, purge volume, restart
 ssh -i $PEM $HOST @"
 cd ~/ICT2216-Secure-Software-Development
 docker compose build --no-cache frontend-build
