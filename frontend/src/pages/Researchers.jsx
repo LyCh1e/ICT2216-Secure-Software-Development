@@ -76,7 +76,7 @@ export default function Researchers() {
             </div>
           </div>
           <PhotoSlot aspect="4 / 5">
-            <img src={cohortGif} alt="Researcher cohort dashboard" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={cohortGif} alt="Researcher cohort dashboard" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </PhotoSlot>
         </div>
       </section>
