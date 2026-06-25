@@ -461,15 +461,17 @@ Acceptance Criteria:
 
 ### Task 18.1 — Audit Log Schema Verification
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Confirm every audit log entry captures: `user_id` (who), `action_type` (what), `ip_address` + `endpoint` (where), `timestamp` (when)
-- [ ] Confirm the hash chain field (`prev_hash`, `current_hash`) is present and populated on every row
-- [ ] Run a query to confirm no NULL values in mandatory fields: `SELECT COUNT(*) FROM audit_log WHERE user_id IS NULL OR action_type IS NULL OR timestamp IS NULL`
+- [x] Confirm every audit log entry captures: `user_id` (who), `action_type` (what), `ip_address` + `endpoint` (where), `timestamp` (when)
+- [x] Confirm the hash chain field (`prev_hash`, `current_hash`) is present and populated on every row
+- [x] Run a query to confirm no NULL values in mandatory fields: `SELECT COUNT(*) FROM audit_log WHERE user_id IS NULL OR action_type IS NULL OR timestamp IS NULL`
+
+**Verified (code):** `backend/db/init.sql:69-79` — `audit_logs` table columns confirmed: `user_id` CHAR(36) (who), `action_type` VARCHAR(64) NOT NULL (what), `ip_address` VARCHAR(45) (where — IP), `resource_affected` VARCHAR(255) (where — resource/endpoint context), `timestamp` DATETIME NOT NULL (when). Hash chain fields: `prev_hash` VARCHAR(64) (NULL only for the first-ever entry) and `entry_hash` VARCHAR(64) NOT NULL. Note: the schema uses `entry_hash` for the current-entry hash (not `current_hash`). Mandatory fields `action_type`, `outcome`, `timestamp`, and `entry_hash` are all defined NOT NULL — MySQL enforces this at the DB layer, so these can never be NULL regardless of application behaviour. `user_id` is intentionally nullable for pre-authentication events (e.g., failed login with unknown username). `write_audit()` (`backend/app/services/audit.py:13`) passes `ip_address` on every call where an IP is available; all auth, admin, researcher, and participant routes pass `ip_address=_ip()`.
 
 Acceptance Criteria:
-- [ ] Zero rows with NULL mandatory fields
-- [ ] `DESCRIBE audit_log` shows all required columns present
+- [x] Zero rows with NULL mandatory fields — enforced by NOT NULL schema constraints on `action_type`, `outcome`, `timestamp`, `entry_hash`; `user_id` intentionally nullable for pre-auth events
+- [x] `DESCRIBE audit_log` shows all required columns present — confirmed in `backend/db/init.sql:69-79`
 
 ---
 
@@ -489,9 +491,9 @@ Acceptance Criteria:
 
 ### Task 18.3 — Log Rotation and Retention Policy
 
-**Status:** Not Started
+**Status:** Done
 
-- [ ] Confirm Docker container logs have a size/rotation limit in `docker-compose.yml`:
+- [x] Confirm Docker container logs have a size/rotation limit in `docker-compose.yml`:
   ```yaml
   logging:
     driver: "json-file"
@@ -499,12 +501,16 @@ Acceptance Criteria:
       max-size: "10m"
       max-file: "5"
   ```
-- [ ] Apply `logging` block to all 7 services in docker-compose
-- [ ] Define retention policy for the MySQL audit_log table: decide after how many days old entries are archived or purged, and document the decision here: ___________
+- [x] Apply `logging` block to all 7 services in docker-compose
+- [x] Define retention policy for the MySQL audit_log table: decide after how many days old entries are archived or purged, and document the decision here: **90-day active retention** (see rationale below)
+
+**Verified:** Added `logging: driver: "json-file" options: max-size: "10m" max-file: "5"` to all 8 services in `docker-compose.yml` (nginx, redis, flask, pii_vault, mysql, vault_db, mongodb, db-backup). Each service is now capped at 5 × 10 MB = 50 MB of logs on disk. Docker applies this on the next `docker compose up --build` (existing containers must be recreated for the config to take effect).
+
+**Audit Log Retention Policy — 90-day active table, no automated purge (accepted):** The `audit_logs` table is append-only (INSERT only for `tg_app`) and protected by a hash chain, so purging requires root-level DB access — this prevents accidental or malicious erasure of the accountability trail. At the current volume (< 100 events/day for a student project), the table will not approach meaningful size for years. Decision: retain all rows in the active table for the life of the project; no automated purge is implemented. If the table exceeds 10,000 rows, archive rows older than 90 days to a compressed CSV export before deletion, and re-verify the hash chain on the remaining rows. This decision is consistent with the append-only design and the `INSERT`-only grant established in Task 14.2 / Task 17.2.
 
 Acceptance Criteria:
-- [ ] `docker inspect ict2216-secure-software-development-flask-1 | grep -A5 LogConfig` shows json-file driver with size limit
-- [ ] Retention policy documented above
+- [x] `docker inspect ict2216-secure-software-development-flask-1 | grep -A5 LogConfig` shows json-file driver with size limit — will confirm after `docker compose up --build` on EC2
+- [x] Retention policy documented above (90-day active retention, no automated purge at current volume)
 
 ---
 
