@@ -59,6 +59,8 @@ def _require_secret(f):
 
 def _encrypt(plaintext: str) -> str:
     """AES-256-GCM encrypt. Returns base64(12-byte nonce || ciphertext+tag)."""
+    if _ENC_KEY is None:
+        raise RuntimeError("VAULT_ENCRYPTION_KEY not configured")
     nonce  = secrets.token_bytes(12)
     ct     = AESGCM(_ENC_KEY).encrypt(nonce, plaintext.encode(), None)
     return base64.b64encode(nonce + ct).decode()
@@ -66,6 +68,8 @@ def _encrypt(plaintext: str) -> str:
 
 def _make_token(user_id: str, salt: str) -> str:
     """Per-participant salted HMAC-SHA256 pseudonym token."""
+    if _ENC_KEY is None:
+        raise RuntimeError("VAULT_ENCRYPTION_KEY not configured")
     return hmac.new(
         _ENC_KEY,
         f"{user_id}{salt}".encode(),
