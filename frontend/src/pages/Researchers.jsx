@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon, PhotoSlot } from '../components/shared'
 import { SubpageNav, SubpageHero, SubpageFooter } from '../components/subpage-shell'
+import cohortGif from '../../media/cohort.gif'
 
 const TABS = {
   recruit: {
@@ -74,7 +75,9 @@ export default function Researchers() {
               ))}
             </div>
           </div>
-          <PhotoSlot aspect="4 / 5" label="screenshot · researcher cohort dashboard" />
+          <PhotoSlot aspect="4 / 5">
+            <img src={cohortGif} alt="Researcher cohort dashboard" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </PhotoSlot>
         </div>
       </section>
 
