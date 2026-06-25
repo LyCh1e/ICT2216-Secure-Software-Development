@@ -647,31 +647,31 @@ Acceptance Criteria:
 ## Priority Summary
 
 ### Must Do (Critical Gaps)
-- [ ] Task 12.1 — nginx hardening (timeouts, method restriction)
-- [ ] Task 13.1 — TLS certificate validity check
-- [ ] Task 13.2 — Session cookie security flags
-- [ ] Task 14.1 — bcrypt cost factor NFR (document justified iteration count)
-- [ ] Task 14.4 — Input validation at all trust boundaries
-- [ ] Task 16.1 — MFA enforcement audit
-- [ ] Task 17.2 — DB service account least privilege
+- [x] Task 12.1 — nginx hardening (timeouts, method restriction)
+- [x] Task 13.1 — TLS certificate validity check
+- [x] Task 13.2 — Session cookie security flags
+- [x] Task 14.1 — bcrypt cost factor NFR (document justified iteration count)
+- [x] Task 14.4 — Input validation at all trust boundaries
+- [~] Task 16.1 — MFA enforcement audit (code verified; live partial-session test pending)
+- [x] Task 17.2 — DB service account least privilege
 
 ### Should Do (Significant Risk Reduction)
-- [ ] Task 12.2 — Redis-backed rate limiting
-- [ ] Task 12.3 — Fail2ban SSH protection
-- [ ] Task 13.3 — Secrets not in git
-- [ ] Task 14.2 — Audit log hash chain integrity
-- [ ] Task 14.3 — DB referential integrity constraints
-- [ ] Task 15.1 — All 7 container health checks healthy
-- [ ] Task 16.3 — Account lockout verification
-- [ ] Task 17.1 — RBAC Data Access Control Matrix + IDOR test
-- [ ] Task 17.3 — Non-root container users
-- [ ] Task 18.2 — No PII in application logs
+- [x] Task 12.2 — Redis-backed rate limiting
+- [x] Task 12.3 — Fail2ban SSH protection
+- [x] Task 13.3 — Secrets not in git
+- [x] Task 14.2 — Audit log hash chain integrity
+- [x] Task 14.3 — DB referential integrity constraints
+- [x] Task 15.1 — All 7 container health checks healthy
+- [~] Task 16.3 — Account lockout verification (code + timing-oracle fix verified; lockout live test pending)
+- [~] Task 17.1 — RBAC Data Access Control Matrix + IDOR test (matrix + code verified; live IDOR test pending)
+- [x] Task 17.3 — Non-root container users
+- [x] Task 18.2 — No PII in application logs
 - [ ] Phase 19 — OWASP principles audit
 
 ### Nice to Have (Compliance and Documentation)
-- [ ] Task 12.4 — Automatic security updates
-- [ ] Task 13.4 — DB connection TLS
-- [ ] Task 15.2 — Backup restore test
-- [ ] Task 15.3 — Disk usage monitoring
-- [ ] Task 18.3 — Log rotation policy
+- [x] Task 12.4 — Automatic security updates
+- [!] Task 13.4 — DB connection TLS (deferred — risk accepted; internal Docker network only)
+- [x] Task 15.2 — Backup restore test
+- [x] Task 15.3 — Disk usage monitoring
+- [x] Task 18.3 — Log rotation policy
 - [ ] Phase 20 — Architecture documentation and threat profile
