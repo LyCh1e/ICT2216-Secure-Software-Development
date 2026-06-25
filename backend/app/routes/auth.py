@@ -2,6 +2,8 @@ import hashlib
 import re
 import secrets
 import uuid
+
+import requests as http_requests
 from datetime import datetime, timedelta
 
 import bcrypt
@@ -53,6 +55,29 @@ def _password_ok(pw):
     )
 
 
+def _is_pwned(password: str) -> bool:
+    # Return True if the password appears in the HIBP Pwned Passwords dataset.
+    # Uses k-anonymity: only the first 5 hex chars of the SHA-1 hash are sent to
+    # HIBP, so the plaintext password never leaves this server.
+
+    sha1 = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
+    prefix, suffix = sha1[:5], sha1[5:]
+    try:
+        resp = http_requests.get(
+            f'https://api.pwnedpasswords.com/range/{prefix}',
+            headers={'Add-Padding': 'true'},
+            timeout=5,
+        )
+        resp.raise_for_status()
+    except Exception:
+        # Fail open: if HIBP is unreachable, don't block registration.
+        return False
+    for line in resp.text.splitlines():
+        h, _, count = line.partition(':')
+        if h == suffix:
+            return True
+    return False
+
 # ── CSRF token endpoint ───────────────────────────────────────────────────────
 
 @auth_bp.route('/csrf-token', methods=['GET'])
@@ -81,7 +106,9 @@ def register():
         return jsonify({'error': 'Invalid input.'}), 400
     if not _password_ok(password):
         return jsonify({'error': 'Password does not meet complexity requirements.'}), 400
-
+    if _is_pwned(password):
+        return jsonify({'error': 'This password has appeared in a data breach. Please choose a different password.'}), 400
+    
     existing = User.query.filter(
         (User.email == email) | (User.username == username)
     ).first()
