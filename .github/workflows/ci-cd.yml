@@ -60,8 +60,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.3.0
 
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4.4.0
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: "npm"
@@ -106,7 +106,7 @@ jobs:
         uses: actions/checkout@v4.3.0
 
       - name: Set up Node.js 24
-        uses: actions/setup-node@v4.4.0
+        uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: "npm"
@@ -191,8 +191,8 @@ jobs:
           bandit -r backend/ -ll -ii --format json -o bandit-report.json || true
           bandit -r backend/ -ll -ii || true
 
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4.4.0
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
         with:
           node-version: "24"
 
