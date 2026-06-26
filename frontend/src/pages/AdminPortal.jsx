@@ -291,6 +291,8 @@ function AdminUsers({ users, onRefresh }) {
   const [actLoading, setActLoading] = useState(false)
   const [filter, setFilter] = useState('all')
   const [toast, setToast] = useState('')
+  const [roleTarget, setRoleTarget] = useState(null)
+  const [roleLoading, setRoleLoading] = useState(false)
 
   async function applyAction() {
     if (!toAct) return
@@ -308,6 +310,22 @@ function AdminUsers({ users, onRefresh }) {
     } finally {
       setActLoading(false)
       setToAct(null)
+    }
+  }
+
+  async function applyRoleChange() {
+    if (!roleTarget) return
+    setRoleLoading(true)
+    try {
+      await api.post(`/api/admin/users/${roleTarget.user.user_id}/role`, { role: roleTarget.role })
+      setToast(`Role updated: ${roleTarget.user.username} → ${roleTarget.role}`)
+      setTimeout(() => setToast(''), 3000)
+      onRefresh()
+    } catch (ex) {
+      setToast(ex.message || 'Role change failed.')
+    } finally {
+      setRoleLoading(false)
+      setRoleTarget(null)
     }
   }
 
@@ -345,7 +363,18 @@ function AdminUsers({ users, onRefresh }) {
                 <tr key={u.user_id}>
                   <td className="pa-mono">{u.username}</td>
                   <td style={{ color: 'var(--ink-3)', fontSize: 12 }}>{u.email}</td>
-                  <td><span className="pa-pill muted">{u.role}</span></td>
+                  <td>
+                    <select
+                      className="pa-select"
+                      style={{ fontSize: 11, padding: '2px 6px', height: 'auto' }}
+                      value={u.role}
+                      onChange={(e) => setRoleTarget({ user: u, role: e.target.value })}
+                    >
+                      <option value="participant">participant</option>
+                      <option value="researcher">researcher</option>
+                      <option value="admin">admin</option>
+                    </select>
+                  </td>
                   <td style={{ color: 'var(--ink-3)' }}>{u.created_at?.slice(0, 10)}</td>
                   <td style={{ color: 'var(--ink-3)', fontSize: 12 }}>{u.last_login?.slice(0, 19).replace('T', ' ') ?? '—'}</td>
                   <td>{u.mfa_enabled ? <span className="pa-pill success">On</span> : <span className="pa-pill muted">Off</span>}</td>
@@ -382,6 +411,16 @@ function AdminUsers({ users, onRefresh }) {
         danger={toAct?.action === 'suspend'}
         onConfirm={applyAction}
         onClose={() => setToAct(null)}
+      />
+
+      <PortalConfirm
+        open={!!roleTarget}
+        title={roleTarget ? `Change role for ${roleTarget.user?.username}?` : ''}
+        body={roleTarget ? `This will change their role to "${roleTarget.role}". They will be redirected to the appropriate portal on next login.` : ''}
+        confirmLabel={roleLoading ? 'Saving…' : 'Change role'}
+        danger={false}
+        onConfirm={applyRoleChange}
+        onClose={() => setRoleTarget(null)}
       />
     </>
   )
