@@ -369,9 +369,9 @@ function AdminUsers({ users, onRefresh }) {
                         fontSize: 11, padding: '2px 8px', height: 'auto',
                         border: '1px solid', borderRadius: 6, fontFamily: 'inherit', cursor: 'pointer',
                         ...(u.role === 'admin'
-                          ? { background: 'var(--ink)',        color: 'var(--cream)',   borderColor: 'var(--ink-2)' }
+                          ? { background: '#FDDCDC', color: '#A63232', borderColor: '#F5B8B8' }
                           : u.role === 'researcher'
-                          ? { background: 'var(--coral-tint)', color: 'var(--coral-2)', borderColor: 'var(--coral-soft)' }
+                          ? { background: '#FDECD6', color: '#A05A1A', borderColor: '#F5D3A8' }
                           : { background: 'var(--sage-tint)',  color: 'var(--sage-2)',  borderColor: 'var(--sage-soft)' }
                         ),
                       }}
