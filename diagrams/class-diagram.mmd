@@ -1,0 +1,198 @@
+classDiagram
+    direction TB
+
+    %% ─── SERVICE INTERFACES ───────────────────────────────────────────────────
+
+    class IVaultService {
+        <<interface>>
+        +createPII(userId: UUID, email: String) String
+        +erasePII(pseudonymToken: String) Boolean
+    }
+
+    class IAuditService {
+        <<interface>>
+        +writeAudit(userId: UUID, action: String, resource: String, outcome: String, ip: String) void
+    }
+
+    class IEmailService {
+        <<interface>>
+        +sendVerificationEmail(email: String, token: String) void
+    }
+
+    %% ─── SERVICE IMPLEMENTATIONS ──────────────────────────────────────────────
+
+    class AuthService {
+        -emailService: IEmailService
+        -auditService: IAuditService
+        +register(username: String, email: String, password: String) User
+        +login(email: String, password: String) Boolean
+        +verifyMFA(userId: UUID, totpCode: String) String
+        +logout(sessionId: String) void
+        +resendVerification(email: String) void
+        -hashPassword(password: String) String
+        -dummyBcryptCheck() void
+    }
+
+    class VaultService {
+        -vaultUrl: String
+        -sharedSecret: String
+        +createPII(userId: UUID, email: String) String
+        +erasePII(pseudonymToken: String) Boolean
+    }
+
+    class AuditService {
+        -db: Database
+        +writeAudit(userId: UUID, action: String, resource: String, outcome: String, ip: String) void
+        -computeHashChain(prevHash: String, entry: AuditEntry) String
+    }
+
+    class EmailService {
+        -smtpHost: String
+        -smtpPort: Integer
+        -smtpUser: String
+        -smtpPass: String
+        +sendVerificationEmail(email: String, token: String) void
+    }
+
+    %% ─── DOMAIN MODEL CLASSES ─────────────────────────────────────────────────
+
+    class User {
+        -userId: UUID
+        -username: String
+        -email: String
+        -passwordHash: String
+        -role: Role
+        -mfaSecret: String
+        -emailVerified: Boolean
+        -verifyToken: String
+        -failedLoginAttempts: Integer
+        -lockedUntil: DateTime
+        -createdAt: DateTime
+        +register(username: String, email: String, password: String) void
+        +verifyEmail(token: String) Boolean
+        +verifyMFA(totpCode: String) Boolean
+        +lockAccount() void
+        +unlockAccount() void
+        +isLocked() Boolean
+        +getRole() Role
+    }
+
+    class Trial {
+        -trialId: UUID
+        -title: String
+        -description: String
+        -phase: String
+        -sponsor: String
+        -duration: String
+        -stipend: Float
+        -riskLevel: RiskLevel
+        -spotsTotal: Integer
+        -spotsEnrolled: Integer
+        -location: String
+        -status: TrialStatus
+        -createdAt: DateTime
+        +getAvailableSpots() Integer
+        +incrementEnrolled() void
+        +decrementEnrolled() void
+        +isRecruiting() Boolean
+    }
+
+    class Participant {
+        -participantId: UUID
+        -pseudonymToken: String
+        -userId: UUID
+        -trialId: UUID
+        -consentStatus: ConsentStatus
+        -withdrawalTriggered: Boolean
+        -enrolledAt: DateTime
+        +enrol(userId: UUID, trialId: UUID) void
+        +withdraw() void
+        +isActive() Boolean
+        +getPseudonymToken() String
+    }
+
+    class ConsentRecord {
+        -consentId: UUID
+        -participantId: UUID
+        -trialId: UUID
+        -consentTextVersion: String
+        -signedAt: DateTime
+        -digitalSignatureHash: String
+        -withdrawnAt: DateTime
+        +sign(consentText: String, signature: String) void
+        +revoke() void
+        +isSigned() Boolean
+        +isWithdrawn() Boolean
+    }
+
+    class AuditLog {
+        -logId: BigInt
+        -userId: UUID
+        -actionType: String
+        -resourceAffected: String
+        -outcome: Outcome
+        -ipAddress: String
+        -timestamp: DateTime
+        -prevHash: String
+        -entryHash: String
+        +computeHash(prevHash: String) String
+        +getEntryHash() String
+    }
+
+    class VaultRecord {
+        -vaultId: UUID
+        -pseudonymToken: String
+        -salt: String
+        -encRealName: String
+        -encEmail: String
+        -encDateOfBirth: String
+        -encContactNumber: String
+        -createdAt: DateTime
+        -purgedAt: DateTime
+        +storePII(piiData: PiiData) String
+        +erasePII() void
+        +isPurged() Boolean
+    }
+
+    class HealthTelemetry {
+        -id: ObjectId
+        -pseudonymToken: String
+        -trialId: UUID
+        -measurementType: MeasurementType
+        -value: Float
+        -unit: String
+        -recordedAt: DateTime
+        -submittedAt: DateTime
+        +validate() Boolean
+        +getMeasurementType() MeasurementType
+    }
+
+    %% ─── INTERFACE IMPLEMENTATIONS (Realisation) ──────────────────────────────
+
+    VaultService ..|> IVaultService : implements
+    AuditService ..|> IAuditService : implements
+    EmailService ..|> IEmailService : implements
+
+    %% ─── DOMAIN RELATIONSHIPS ─────────────────────────────────────────────────
+
+    %% Aggregation — User and Trial exist independently of Participant
+    User "1" o-- "0..*" Participant : enrolls as
+    Trial "1" o-- "0..*" Participant : has enrolled
+
+    %% Composition — ConsentRecord and HealthTelemetry cannot exist without Participant
+    Participant "1" *-- "1..*" ConsentRecord : owns
+    Participant "1" *-- "0..*" HealthTelemetry : produces
+
+    %% Association — Participant is identified by a VaultRecord (cross-service boundary)
+    Participant "1" --> "1" VaultRecord : identified by
+
+    %% Association — User generates AuditLog entries
+    User "1" o-- "0..*" AuditLog : generates
+
+    %% ─── SERVICE DEPENDENCIES ─────────────────────────────────────────────────
+
+    AuthService ..> User : manages
+    AuthService ..> IEmailService : uses
+    AuthService ..> IAuditService : logs via
+    VaultService ..> VaultRecord : manages
+    AuditService ..> AuditLog : appends to

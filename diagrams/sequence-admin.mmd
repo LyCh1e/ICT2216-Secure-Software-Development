@@ -1,0 +1,85 @@
+sequenceDiagram
+    autonumber
+
+    participant A as Admin (Browser)
+    participant NG as Nginx
+    participant API as Flask API
+    participant DB as MySQL
+    participant RD as Redis
+
+    Note over A,RD: 1. Admin Login (same 2-step MFA flow as Patient)
+
+    A->>NG: POST /api/auth/login {email, password}
+    NG->>API: Forward request
+    API->>DB: SELECT user WHERE email=... AND role=admin
+    DB-->>API: user row
+    API->>API: bcrypt compare (timing-safe)
+    API->>RD: SET mfa_pending_user_id in session
+    API-->>A: 200 {message: "MFA required"}
+
+    A->>NG: POST /api/auth/verify-mfa {totp_code}
+    NG->>API: Forward request
+    API->>RD: GET mfa_pending_user_id from session
+    API->>API: pyotp.TOTP(mfa_secret).verify(totp_code)
+    API->>RD: Regenerate session, SET user_id + role=admin
+    API->>DB: INSERT audit_log (login_success)
+    API-->>A: 200 {role: "admin", username}
+
+    Note over A,RD: 2. User Management
+
+    A->>NG: GET /api/admin/users
+    NG->>API: require_role(admin) verified
+    API->>DB: SELECT users (emails masked in response)
+    DB-->>API: users list
+    API-->>A: 200 [users]
+
+    A->>NG: POST /api/admin/users/{user_id}/suspend
+    NG->>API: require_role(admin) verified
+    API->>DB: UPDATE user SET locked_until='9999-12-31'
+    API->>DB: INSERT audit_log (account_suspend, success)
+    API-->>A: 200 {message: "User suspended"}
+
+    A->>NG: POST /api/admin/users/{user_id}/activate
+    NG->>API: require_role(admin) verified
+    API->>DB: UPDATE user SET locked_until=NULL, failed_login_attempts=0
+    API->>DB: INSERT audit_log (account_activate, success)
+    API-->>A: 200 {message: "User activated"}
+
+    A->>NG: POST /api/admin/users/{user_id}/role {role}
+    NG->>API: require_role(admin) verified
+    API->>DB: UPDATE user SET role=new_role
+    API->>DB: INSERT audit_log (role_change, success)
+    API-->>A: 200 {message: "Role updated"}
+
+    Note over A,RD: 3. Trial Management
+
+    A->>NG: GET /api/admin/trials
+    NG->>API: require_role(admin) verified
+    API->>DB: SELECT all trials (all statuses)
+    DB-->>API: trials list
+    API-->>A: 200 [trials]
+
+    A->>NG: POST /api/admin/trials {title, description, phase, sponsor, risk_level, spots_total, ...}
+    NG->>API: require_role(admin) verified
+    API->>API: Validate & sanitise all fields, check field length limits
+    API->>DB: INSERT trial (status=recruiting)
+    API->>DB: INSERT audit_log (trial_create, success)
+    API-->>A: 201 {trial_id, message}
+
+    Note over A,RD: 4. Audit Log Review
+
+    A->>NG: GET /api/admin/audit-log?page=1&per_page=50
+    NG->>API: require_role(admin) verified
+    API->>DB: SELECT audit_logs ORDER BY timestamp DESC LIMIT 50
+    DB-->>API: paginated audit entries (with hash chain)
+    API-->>A: 200 {logs, total, pages}
+
+    Note over A,RD: 5. Compliance Report
+
+    A->>NG: GET /api/admin/compliance-report
+    NG->>API: require_role(admin) verified
+    API->>DB: COUNT users by role, COUNT trials by status
+    API->>DB: COUNT participants by consent_status
+    API->>DB: COUNT audit_logs by outcome
+    DB-->>API: aggregated stats
+    API-->>A: 200 {users, trials, participants, audit_summary}

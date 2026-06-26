@@ -1,0 +1,55 @@
+sequenceDiagram
+    autonumber
+
+    participant R as Researcher (Browser)
+    participant NG as Nginx
+    participant API as Flask API
+    participant DB as MySQL
+    participant RD as Redis
+
+    Note over R,RD: 1. Researcher Login (same 2-step MFA flow)
+
+    R->>NG: POST /api/auth/login {email, password}
+    NG->>API: Forward request
+    API->>DB: SELECT user WHERE email=... AND role=researcher
+    DB-->>API: user row
+    API->>API: bcrypt compare (timing-safe)
+    API->>RD: SET mfa_pending_user_id in session
+    API-->>R: 200 {message: "MFA required"}
+
+    R->>NG: POST /api/auth/verify-mfa {totp_code}
+    NG->>API: Forward request
+    API->>RD: GET mfa_pending_user_id from session
+    API->>API: pyotp.TOTP(mfa_secret).verify(totp_code)
+    API->>RD: Regenerate session, SET user_id + role=researcher
+    API->>DB: INSERT audit_log (login_success)
+    API-->>R: 200 {role: "researcher", username}
+
+    Note over R,RD: 2. Browse All Trials
+
+    R->>NG: GET /api/researcher/trials
+    NG->>API: require_role(researcher) verified
+    API->>DB: SELECT all trials (all statuses, metadata only)
+    DB-->>API: trials list
+    API-->>R: 200 [trials metadata — no participant PII]
+
+    Note over R,RD: 3. View Aggregate Cohort Statistics
+
+    R->>NG: GET /api/researcher/trials/{trial_id}/stats
+    NG->>API: require_role(researcher) verified
+    API->>DB: SELECT trial WHERE trial_id=...
+    DB-->>API: trial row
+    API->>DB: COUNT participants WHERE trial_id AND consent_status=active
+    API->>DB: COUNT participants WHERE trial_id AND withdrawal_triggered=true
+    API->>DB: CALCULATE withdrawal_rate as percentage
+    DB-->>API: aggregate counts
+    API-->>R: 200 {total_enrolled, withdrawn, withdrawal_rate, spots_remaining}
+    Note right of R: No PII, no pseudonym tokens,<br/>no individual records exposed
+
+    Note over R,RD: 4. Logout
+
+    R->>NG: POST /api/auth/logout
+    NG->>API: Forward request
+    API->>RD: DELETE session
+    API->>DB: INSERT audit_log (logout)
+    API-->>R: 200 {message: "Logged out"}

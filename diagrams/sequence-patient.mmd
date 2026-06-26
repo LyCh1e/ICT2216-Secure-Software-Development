@@ -1,0 +1,110 @@
+sequenceDiagram
+    autonumber
+
+    participant P as Patient (Browser)
+    participant NG as Nginx
+    participant API as Flask API
+    participant DB as MySQL
+    participant V as PII Vault
+    participant VDB as Vault DB
+    participant MG as MongoDB
+    participant RD as Redis
+    participant EM as Email (SMTP)
+
+    Note over P,EM: 1. Registration & Email Verification
+
+    P->>NG: POST /api/auth/register {username, email, password}
+    NG->>API: Forward request
+    API->>API: Validate input, bcrypt hash password (cost=12)
+    API->>API: Generate MFA secret (pyotp), QR code URI
+    API->>API: Generate verify_token, SHA-256 hash stored
+    API->>DB: INSERT user (email_verified=false, mfa_secret)
+    DB-->>API: user_id
+    API->>EM: sendVerificationEmail(email, token)
+    EM-->>P: Email with verification link
+    API-->>P: 201 {mfa_qr_uri, message}
+
+    P->>NG: GET /api/auth/verify-email?token=...
+    NG->>API: Forward request
+    API->>DB: UPDATE user SET email_verified=true WHERE token_hash matches
+    DB-->>API: OK
+    API-->>P: 200 {message: "Email verified"}
+
+    Note over P,EM: 2. Login with MFA (2-step)
+
+    P->>NG: POST /api/auth/login {email, password}
+    NG->>API: Forward request
+    API->>DB: SELECT user WHERE email=...
+    DB-->>API: user row
+    API->>API: bcrypt compare (dummy bcrypt if no user — timing oracle mitigation)
+    alt Account locked
+        API-->>P: 429 {error: "Account locked"}
+    else Credentials valid
+        API->>RD: SET mfa_pending_user_id in session
+        API-->>P: 200 {message: "MFA required"}
+    end
+
+    P->>NG: POST /api/auth/verify-mfa {totp_code}
+    NG->>API: Forward request
+    API->>RD: GET mfa_pending_user_id from session
+    API->>API: pyotp.TOTP(mfa_secret).verify(totp_code)
+    alt TOTP invalid
+        API->>DB: INCREMENT failed_login_attempts
+        alt Max attempts reached
+            API->>DB: SET locked_until = NOW() + 15 min
+        end
+        API-->>P: 401 {error: "Invalid MFA code"}
+    else TOTP valid
+        API->>RD: Regenerate session, SET user_id + role
+        API->>DB: RESET failed_login_attempts
+        API->>DB: INSERT audit_log (login_success)
+        API-->>P: 200 {role, username}
+    end
+
+    Note over P,EM: 3. Browse & Apply to Trial
+
+    P->>NG: GET /api/trials
+    NG->>API: Forward request
+    API->>DB: SELECT trials WHERE status='recruiting'
+    DB-->>API: trials list
+    API-->>P: 200 [trials]
+
+    P->>NG: POST /api/trials/{trial_id}/apply {consent, real_name, dob, contact}
+    NG->>API: Forward (CSRF token verified)
+    API->>DB: CHECK trial spots & user not already enrolled
+    API->>V: POST /vault/create {user_id, email, real_name, dob, contact}
+    V->>VDB: AES-256-GCM encrypt PII, INSERT vault_record
+    VDB-->>V: pseudonym_token (HMAC-SHA256)
+    V-->>API: {pseudonym_token}
+    API->>DB: INSERT participant (pseudonym_token, consent_status=active)
+    API->>DB: INSERT consent_record (signed_at, digital_signature_hash)
+    API->>DB: INCREMENT trial.spots_enrolled
+    API->>DB: INSERT audit_log (consent_submit, success)
+    API-->>P: 201 {message: "Enrolled successfully"}
+
+    Note over P,EM: 4. Submit Health Telemetry
+
+    P->>NG: POST /api/health/submit {measurement_type, value, unit, recorded_at}
+    NG->>API: Forward request
+    API->>API: Validate measurement_type in whitelist
+    API->>API: Validate value within clinical range
+    API->>DB: SELECT participant WHERE user_id AND consent_status=active
+    DB-->>API: participant (pseudonym_token, trial_id)
+    API->>MG: INSERT health_telemetry {pseudonym_token, trial_id, value}
+    MG-->>API: OK
+    API->>DB: INSERT audit_log (health_data_submit, success)
+    API-->>P: 201 {message: "Health data recorded"}
+
+    Note over P,EM: 5. PII Withdrawal (GDPR Right to Erasure)
+
+    P->>NG: POST /api/trials/{trial_id}/withdraw
+    NG->>API: Forward (CSRF verified)
+    API->>DB: SELECT participant (pseudonym_token)
+    API->>V: POST /vault/erase/{pseudonym_token}
+    V->>VDB: UPDATE vault_record SET enc_* = NULL, purged_at = NOW()
+    VDB-->>V: OK
+    V-->>API: {erased: true}
+    API->>DB: UPDATE participant SET withdrawal_triggered=true, consent_status=withdrawn
+    API->>DB: UPDATE consent_record SET withdrawn_at = NOW()
+    API->>DB: INSERT audit_log (pii_erasure, success)
+    API-->>P: 200 {message: "PII erased, withdrawal complete"}
