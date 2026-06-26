@@ -309,9 +309,9 @@ Acceptance Criteria:
 
 - [x] Check current disk usage on EC2: `df -h` — confirm < 80% full
 - [x] Check log volume growth: `du -sh /var/lib/docker/volumes/`
-- [x] Set up a disk usage alert or cron job that emails `lcslayer22@gmail.com` if `/` exceeds 85%
+- [x] Set up a disk usage alert or cron job that emails `claudeisgoat3@gmail.com` if `/` exceeds 85%
 
-**Verified:** Live root filesystem at 34% (`df -h /`), well under 80%. Docker volumes total ~788 MB (`docker system df`) — small, no growth concern. Alert configured: `scripts/disk-alert.sh` (version-controlled) checks `/` usage and logs to syslog (`logger -t trialguard-disk-alert`), warning at ≥85% (email line ready to enable once an MTA is configured). Installed on EC2 via cron: `0 */6 * * * .../scripts/disk-alert.sh` (every 6h). Test run confirmed: `OK: root filesystem at 34% (threshold 85%)` written to syslog.
+**Verified:** Live root filesystem at 34% (`df -h /`), well under 80%. Docker volumes total ~788 MB (`docker system df`) — small, no growth concern. Alert configured: `scripts/disk-alert.sh` (version-controlled) checks `/` usage and logs to syslog (`logger -t trialguard-disk-alert`), warning at ≥85% — logs to syslog and **emails `claudeisgoat3@gmail.com` via the configured Gmail SMTP** (reads creds from `.env`; threshold overridable via `DISK_ALERT_THRESHOLD` for testing). Installed on EC2 via cron: `0 */6 * * * .../scripts/disk-alert.sh` (every 6h). Test run confirmed: `OK: root filesystem at 34% (threshold 85%)` written to syslog.
 
 Acceptance Criteria:
 - [x] Current disk usage < 80% (34%)
