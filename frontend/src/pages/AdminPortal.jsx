@@ -365,8 +365,16 @@ function AdminUsers({ users, onRefresh }) {
                   <td style={{ color: 'var(--ink-3)', fontSize: 12 }}>{u.email}</td>
                   <td>
                     <select
-                      className="pa-select"
-                      style={{ fontSize: 11, padding: '2px 6px', height: 'auto' }}
+                      style={{
+                        fontSize: 11, padding: '2px 8px', height: 'auto',
+                        border: '1px solid', borderRadius: 6, fontFamily: 'inherit', cursor: 'pointer',
+                        ...(u.role === 'admin'
+                          ? { background: 'var(--ink)',        color: 'var(--cream)',   borderColor: 'var(--ink-2)' }
+                          : u.role === 'researcher'
+                          ? { background: 'var(--coral-tint)', color: 'var(--coral-2)', borderColor: 'var(--coral-soft)' }
+                          : { background: 'var(--sage-tint)',  color: 'var(--sage-2)',  borderColor: 'var(--sage-soft)' }
+                        ),
+                      }}
                       value={u.role}
                       onChange={(e) => setRoleTarget({ user: u, role: e.target.value })}
                     >
