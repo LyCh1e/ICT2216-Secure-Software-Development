@@ -28,7 +28,7 @@ export function SubpageNav({ active }) {
           </Link>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: 10 }}>
+      <div className="tg-nav-actions" style={{ display: 'flex', gap: 10 }}>
         <Link to="/login" className="tg-btn tg-btn-ghost" style={{ padding: '10px 16px', fontSize: 14, textDecoration: 'none' }}>Sign in</Link>
         <Link to="/signup" className="tg-btn tg-btn-primary" style={{ padding: '10px 18px', fontSize: 14, textDecoration: 'none' }}>Get a pseudonym</Link>
       </div>
@@ -39,7 +39,7 @@ export function SubpageNav({ active }) {
 export function SubpageHero({ eyebrow, title, sub, right }) {
   return (
     <section style={{ padding: 'calc(var(--tg-pad-y) * 0.85) var(--tg-pad-x) calc(var(--tg-pad-y) * 0.6)', borderBottom: '1px solid var(--line)' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: right ? '1.4fr 1fr' : '1fr', gap: 64, alignItems: 'flex-end' }}>
+      <div className="tg-subpage-hero-grid" style={{ display: 'grid', gridTemplateColumns: right ? '1.4fr 1fr' : '1fr', gap: 64, alignItems: 'flex-end' }}>
         <div>
           <span className="tg-eyebrow"><span className="dot"></span>{eyebrow}</span>
           <h1 className="tg-serif" style={{ fontSize: 'clamp(48px, 5.6vw, 80px)', lineHeight: 1.04, letterSpacing: '-0.015em', margin: '20px 0 18px' }}>
@@ -59,7 +59,7 @@ export function SubpageFooter() {
   return (
     <>
       <section style={{ padding: 'var(--tg-pad-y) var(--tg-pad-x)', background: 'var(--coral-tint)' }}>
-        <div style={{ maxWidth: 760 }}>
+        <div className="tg-cta-block" style={{ maxWidth: 760 }}>
           <h2 className="tg-serif" style={{ fontSize: 'clamp(36px, 4.2vw, 56px)', lineHeight: 1.05 }}>
             Be a participant — not a profile.
           </h2>

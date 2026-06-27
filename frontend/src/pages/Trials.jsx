@@ -65,7 +65,7 @@ export default function Trials() {
 
       {/* FILTERS */}
       <section style={{ padding: '32px var(--tg-pad-x) 0' }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 18 }}>
+        <div className="tg-filters-row" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 999, flex: '1 1 300px', maxWidth: 420 }}>
             <Icon name="search" size={14} />
             <input
@@ -90,8 +90,9 @@ export default function Trials() {
           <select className="pa-select" style={{ width: 'auto', borderRadius: 999, padding: '10px 16px' }} value={area} onChange={(e) => setArea(e.target.value)}>
             {AREAS.map(a => <option key={a}>{a}</option>)}
           </select>
-
-          <span className="tg-mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.08em', marginLeft: 'auto' }}>RISK</span>
+        </div>
+        <div className="tg-filters-row" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 18 }}>
+          <span className="tg-mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.08em' }}>RISK</span>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {['any', 'minimal', 'low', 'medium', 'high'].map(r => (
               <button key={r} className="pa-chip-pick" data-on={risk === r} onClick={() => setRisk(r)}>
@@ -110,7 +111,7 @@ export default function Trials() {
             <div style={{ marginTop: 10, color: 'var(--ink-2)', fontSize: 14 }}>No trials match your filters. Try clearing one.</div>
           </div>
         ) : (
-          <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--tg-radius)', overflow: 'hidden' }}>
+          <><div className="tg-trials-table" style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--tg-radius)', overflow: 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '90px 2fr 1.1fr 0.8fr 0.8fr 0.8fr 0.8fr 110px', padding: '14px 22px', background: 'var(--cream-2)', borderBottom: '1px solid var(--line)', fontFamily: 'Geist Mono, monospace', fontSize: 11, letterSpacing: '0.08em', color: 'var(--ink-3)', textTransform: 'uppercase' }}>
               <span>ID</span><span>Study</span><span>Sponsor</span><span>Length</span><span>Stipend</span><span>Risk</span><span>Location</span><span>Action</span>
             </div>
@@ -132,6 +133,32 @@ export default function Trials() {
               </div>
             ))}
           </div>
+          {/* Mobile cards */}
+          <div className="tg-trials-cards" style={{ display: 'none' }}>
+            {filtered.map((t) => (
+              <div key={t.id} className="tg-card" style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                  <div>
+                    <div style={{ fontFamily: 'Instrument Serif, serif', fontSize: 20, lineHeight: 1.15 }}>{t.plain}</div>
+                    <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>{t.clinical}</div>
+                  </div>
+                  <span className="pa-risk" data-level={t.risk.toLowerCase()}>{t.risk}</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, color: 'var(--ink-2)', margin: '12px 0' }}>
+                  <span><strong>Sponsor:</strong> {t.sponsor}</span>
+                  <span><strong>Length:</strong> {t.duration}</span>
+                  <span><strong>Stipend:</strong> {t.stipend}</span>
+                  <span><strong>Location:</strong> {t.location}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+                  <span className="tg-mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>{t.id} · {t.spots} spots</span>
+                  <Link to="/signup" className="tg-btn tg-btn-ghost" style={{ padding: '8px 16px', fontSize: 13, textDecoration: 'none' }}>
+                    Apply <Icon name="arrow" size={12} />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div></>
         )}
         <div style={{ marginTop: 18, display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--ink-3)' }}>
           <span>Showing <strong>{filtered.length}</strong> of {TG_TRIALS_FULL.length}. Filters update live; no info is stored until you create a pseudonym.</span>

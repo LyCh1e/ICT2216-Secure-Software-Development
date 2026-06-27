@@ -255,3 +255,93 @@ body {
 .tg-divider { height: 1px; background: var(--line); }
 .tg-pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 0 0 color-mix(in oklab, var(--sage) 50%, transparent); animation: tg-pulse 1.8s infinite; }
 @keyframes tg-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--sage) 55%, transparent); } 70% { box-shadow: 0 0 0 10px color-mix(in oklab, var(--sage) 0%, transparent); } 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--sage) 0%, transparent); } }
+
+/* ── Responsive grid helpers ────────────────────────────────────────────────── */
+.tg-grid-hero   { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 64px; align-items: center; }
+.tg-grid-2col   { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+.tg-grid-sidebar { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 80px; }
+.tg-grid-content { display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; align-items: center; }
+.tg-grid-stats  { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--tg-gap); }
+.tg-grid-cards  { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--tg-gap); }
+.tg-grid-features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.tg-grid-quotes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 48px; }
+.tg-grid-step   { display: grid; grid-template-columns: 90px 1fr; gap: 24px; }
+
+/* ── Mobile responsiveness ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --tg-pad-y: 48px;
+    --tg-pad-x: 20px;
+    --tg-gap: 16px;
+  }
+  .tg-nav { padding: 14px var(--tg-pad-x); flex-wrap: wrap; justify-content: center; gap: 12px; }
+  .tg-nav-links { gap: 16px; justify-content: center; width: 100%; }
+  .tg-nav-links a { font-size: 13px; }
+  .tg-nav-actions { justify-content: center; width: 100%; }
+  .tg-modal-bg { padding: 16px; }
+  .tg-modal { padding: 24px; border-radius: 16px; }
+  .tg-btn { padding: 12px 18px; font-size: 14px; }
+  .tg-acc-head { font-size: 16px; }
+
+  .tg-grid-hero,
+  .tg-grid-2col,
+  .tg-grid-sidebar,
+  .tg-grid-content { grid-template-columns: 1fr; gap: 32px; text-align: center; }
+  .tg-grid-stats { text-align: center; }
+  .tg-grid-quotes { text-align: center; }
+  .tg-grid-features { text-align: left; }
+  .tg-eyebrow { justify-content: center; }
+  .tg-grid-hero p,
+  .tg-grid-2col p,
+  .tg-grid-sidebar p,
+  .tg-grid-content p { margin-left: auto; margin-right: auto; }
+  .tg-hero-cta { justify-content: center !important; }
+  .tg-hero-stats { justify-content: center !important; }
+
+  /* center list items and flex rows on mobile */
+  .tg-grid-2col ul { display: flex; flex-direction: column; align-items: center; }
+  .tg-grid-2col ul li { justify-content: center; }
+  .tg-grid-2col div[style*="flex"] { justify-content: center; }
+  .tg-grid-content div[style*="flex"] { justify-content: center; }
+  .tg-grid-quotes blockquote { text-align: center; }
+  .tg-grid-quotes div[style*="flex"] { justify-content: center; }
+  .tg-story-block { text-align: center; margin: 0 auto; }
+  .tg-story-block p { margin-left: auto; margin-right: auto; }
+  .tg-quotes-section { text-align: center; }
+  .tg-cta-block { text-align: center; margin: 0 auto; }
+  .tg-cta-block p { margin-left: auto; margin-right: auto; }
+  .tg-cta-block div { margin-left: auto; margin-right: auto; }
+  .tg-cta-block .tg-btn { width: 100%; justify-content: center; }
+  .tg-grid-stats { grid-template-columns: repeat(2, 1fr); }
+  .tg-grid-cards { grid-template-columns: 1fr; }
+  .tg-grid-quotes { grid-template-columns: 1fr; gap: 32px; }
+  .tg-grid-step { grid-template-columns: 60px 1fr; gap: 16px; }
+  .tg-hero-float { left: 0 !important; right: 0; bottom: 16px !important; max-width: 100% !important; }
+  .tg-subpage-hero-grid { grid-template-columns: 1fr !important; gap: 32px !important; text-align: center; }
+  .tg-subpage-hero-grid p { margin-left: auto; margin-right: auto; }
+  .tg-trials-table { display: none !important; }
+  .tg-trials-cards { display: block !important; }
+  .tg-filters-row { justify-content: center !important; }
+  .tg-privacy-item { grid-template-columns: 1fr !important; gap: 4px !important; }
+  .tg-faq-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .tg-faq-sidebar { display: none !important; }
+  .tg-auth-frame { grid-template-columns: 1fr !important; }
+  .tg-auth-form { padding: 24px 20px !important; }
+  .tg-auth-brand { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --tg-pad-y: 32px;
+    --tg-pad-x: 16px;
+    --tg-gap: 12px;
+  }
+  .tg-nav { flex-wrap: wrap; gap: 10px; }
+  .tg-nav-links { gap: 12px; flex-wrap: wrap; }
+  .tg-modal-bg { padding: 8px; }
+  .tg-modal { padding: 20px; border-radius: 14px; max-width: 100%; }
+  .tg-card { padding: 18px; }
+
+  .tg-grid-stats { grid-template-columns: 1fr; }
+  .tg-grid-features { grid-template-columns: 1fr; }
+}

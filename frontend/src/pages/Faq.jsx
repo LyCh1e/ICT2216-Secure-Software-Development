@@ -106,8 +106,8 @@ export default function Faq() {
             <div style={{ marginTop: 10, color: 'var(--ink-2)', fontSize: 14 }}>No matches for "{search}". Try a different keyword, or email us.</div>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '0.4fr 1.6fr', gap: 64 }}>
-            <aside style={{ position: 'sticky', top: 100, alignSelf: 'flex-start' }}>
+          <div className="tg-faq-grid" style={{ display: 'grid', gridTemplateColumns: '0.4fr 1.6fr', gap: 64 }}>
+            <aside className="tg-faq-sidebar">
               <div className="tg-mono" style={{ fontSize: 11, letterSpacing: '0.1em', color: 'var(--ink-3)', marginBottom: 14 }}>BROWSE BY TOPIC</div>
               <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 4 }}>
                 {filtered.map(g => (

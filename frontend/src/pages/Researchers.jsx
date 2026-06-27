@@ -51,7 +51,7 @@ export default function Researchers() {
 
       {/* PILLARS */}
       <section style={{ padding: 'var(--tg-pad-y) var(--tg-pad-x)' }}>
-        <div style={{ display: 'flex', gap: 6, padding: 6, background: 'var(--white)', borderRadius: 999, border: '1px solid var(--line)', width: 'fit-content' }}>
+        <div className="tg-filters-row" style={{ display: 'flex', gap: 6, padding: 6, background: 'var(--white)', borderRadius: 999, border: '1px solid var(--line)', width: 'fit-content' }}>
           {[['recruit', 'Recruit'], ['manage', 'Manage cohort'], ['comply', 'Stay compliant']].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)} className="tg-btn"
               style={{
@@ -62,7 +62,7 @@ export default function Researchers() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 64, marginTop: 36, alignItems: 'flex-start' }}>
+        <div className="tg-grid-content" style={{ marginTop: 36 }}>
           <div>
             <h2 className="tg-serif" style={{ fontSize: 'clamp(32px, 3.6vw, 46px)', lineHeight: 1.1, margin: 0 }}>{t.title}</h2>
             <p style={{ color: 'var(--ink-2)', fontSize: 17, marginTop: 18, maxWidth: '54ch' }}>{t.body}</p>
@@ -85,7 +85,7 @@ export default function Researchers() {
         <h2 className="tg-serif" style={{ fontSize: 'clamp(32px, 3.6vw, 46px)', lineHeight: 1.1, marginTop: 14, maxWidth: '20ch' }}>
           From sponsor agreement to first enrolled participant.
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--tg-gap)', marginTop: 40 }}>
+        <div className="tg-grid-stats" style={{ marginTop: 40 }}>
           {[
             { n: '01', t: 'Sponsor verification', s: 'We confirm your organisation against FDA/EMA registries. Typically 3–5 business days.' },
             { n: '02', t: 'Researcher provisioning', s: 'Our admin team provisions researcher accounts for your study team, scoped to your sponsor.' },
@@ -107,7 +107,7 @@ export default function Researchers() {
         <h2 className="tg-serif" style={{ fontSize: 'clamp(32px, 3.6vw, 46px)', lineHeight: 1.1, marginTop: 14, maxWidth: '24ch' }}>
           What a researcher account can and can't do.
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--tg-gap)', marginTop: 32 }}>
+        <div className="tg-grid-cards" style={{ marginTop: 32 }}>
           <div className="tg-card" style={{ background: 'var(--sage-tint)', borderColor: 'var(--sage-soft)' }}>
             <div className="tg-mono" style={{ fontSize: 11, letterSpacing: '0.1em', color: 'var(--sage-2)' }}>CAN DO</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '14px 0 0', display: 'grid', gap: 10 }}>
@@ -155,7 +155,7 @@ export default function Researchers() {
 
       {/* PRICING */}
       <section style={{ padding: 'var(--tg-pad-y) var(--tg-pad-x)', background: 'var(--ink)', color: 'var(--cream)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '0.8fr 1.2fr', gap: 64 }}>
+        <div className="tg-grid-content">
           <div>
             <span className="tg-eyebrow" style={{ color: 'var(--cream-3)' }}><span className="dot"></span>Pricing, in plain terms</span>
             <h2 className="tg-serif" style={{ fontSize: 'clamp(32px, 3.6vw, 46px)', lineHeight: 1.1, marginTop: 14 }}>
@@ -165,7 +165,7 @@ export default function Researchers() {
               Patients are never charged. Sponsors pay a per-trial publication fee plus a small recruitment success fee — capped per cohort.
             </p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--tg-gap)' }}>
+          <div className="tg-grid-cards">
             {[
               { n: 'Observational', p: '$3,500', sub: 'per study', items: ['Unlimited applicants', 'Up to 500 enrolled', 'Standard support'] },
               { n: 'Interventional', p: '$12,000', sub: 'per trial', items: ['Up to 200 enrolled', 'Up to 40 researcher seats', 'Priority support'] },
@@ -190,7 +190,7 @@ export default function Researchers() {
 
       {/* CTA */}
       <section style={{ padding: 'var(--tg-pad-y) var(--tg-pad-x)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 64, alignItems: 'center' }}>
+        <div className="tg-grid-content">
           <div>
             <h2 className="tg-serif" style={{ fontSize: 'clamp(36px, 4.2vw, 56px)', lineHeight: 1.05 }}>
               Have a protocol in hand? Let's talk.

@@ -32,10 +32,12 @@ export function PortalTopbar({ role, who, search = true }) {
             <span className="pa-kbd">⌘K</span>
           </div>
         )}
-        <button className="pa-iconbtn" title="Notifications"><Icon name="bell" size={16}/></button>
-        <button className="pa-iconbtn" title="Help"><Icon name="help" size={16}/></button>
+        <span className="pa-topbar-icons">
+          <button className="pa-iconbtn" title="Notifications"><Icon name="bell" size={16}/></button>
+          <button className="pa-iconbtn" title="Help"><Icon name="help" size={16}/></button>
+        </span>
         <button className="pa-iconbtn" title="Sign out" onClick={handleLogout}><Icon name="lock" size={16}/></button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 12, borderLeft: '1px solid var(--line)' }}>
+        <div className="pa-topbar-user" style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 12, borderLeft: '1px solid var(--line)' }}>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 12, fontWeight: 500 }}>{who}</div>
             <div className="pa-mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>{role === 'patient' ? 'participant' : role === 'admin' ? 'admin · L2' : 'cohort lead'}</div>
@@ -76,7 +78,7 @@ export function PortalHead({ title, sub, right }) {
         <h1 className="pa-content-title">{title}</h1>
         {sub && <div className="pa-content-sub">{sub}</div>}
       </div>
-      {right}
+      {right && <div className="pa-content-head-right">{right}</div>}
     </div>
   )
 }

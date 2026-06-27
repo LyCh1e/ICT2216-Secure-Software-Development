@@ -60,6 +60,13 @@ export default function AdminPortal() {
           )}
         />
         <div className="pa-content">
+          <div className="pa-mobile-tabs">
+            {NAV.map(n => (
+              <button key={n.id} className={'pa-mobile-tab' + (tab === n.id ? ' active' : '')} onClick={() => setTab(n.id)}>
+                <Icon name={n.icon} size={14}/> {n.label}
+              </button>
+            ))}
+          </div>
           {tab === 'overview' && <AdminOverview users={users} trials={trials} go={setTab}/>}
           {tab === 'trials'   && <AdminTrials   trials={trials} onRefresh={fetchTrials}/>}
           {tab === 'users'    && <AdminUsers    users={users}   onRefresh={fetchUsers}/>}
@@ -81,7 +88,7 @@ function AdminOverview({ users, trials, go }) {
     <>
       <PortalHead title="Platform overview" sub="Live counts across users and trials."/>
       <div className="pa-content-body">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 18 }}>
+        <div className="pa-portal-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 18 }}>
           {[
             { k: active,            l: 'Active trials',    go: 'trials' },
             { k: patients,          l: 'Participants',      go: 'users'  },
@@ -95,7 +102,7 @@ function AdminOverview({ users, trials, go }) {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 18 }}>
+        <div className="pa-portal-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 18 }}>
           <div className="pa-card">
             <div className="pa-card-head">
               <div>
@@ -200,7 +207,7 @@ function AdminTrials({ trials, onRefresh }) {
         )}
       />
       <div className="pa-content-body">
-        <div className="pa-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="pa-card pa-table-wrap" style={{ padding: 0 }}>
           <table className="pa-table">
             <thead>
               <tr><th>Title</th><th>Sponsor</th><th>Phase</th><th>Risk</th><th>Enrolled</th><th>Status</th></tr>
@@ -355,7 +362,7 @@ function AdminUsers({ users, onRefresh }) {
         )}
       />
       <div className="pa-content-body">
-        <div className="pa-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="pa-card pa-table-wrap" style={{ padding: 0 }}>
           <table className="pa-table">
             <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Joined</th><th>Last login</th><th>MFA</th><th>Status</th><th></th></tr></thead>
             <tbody>
@@ -470,7 +477,7 @@ function AdminAudit() {
         )}
       />
       <div className="pa-content-body">
-        <div className="pa-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="pa-card pa-table-wrap" style={{ padding: 0 }}>
           <table className="pa-table">
             <thead>
               <tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>Outcome</th><th>IP</th></tr>

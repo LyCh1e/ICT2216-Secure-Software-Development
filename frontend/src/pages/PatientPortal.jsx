@@ -48,6 +48,13 @@ export default function PatientPortal() {
           )}
         />
         <div className="pa-content">
+          <div className="pa-mobile-tabs">
+            {NAV.map(n => (
+              <button key={n.id} className={'pa-mobile-tab' + (tab === n.id ? ' active' : '')} onClick={() => setTab(n.id)}>
+                <Icon name={n.icon} size={14}/> {n.label}
+              </button>
+            ))}
+          </div>
           {tab === 'profile'    && <PatientProfile profile={profile} onRefresh={fetchProfile}/>}
           {tab === 'documents'  && <PatientDocuments/>}
           {tab === 'trials'     && <PatientTrials profile={profile} onRefresh={fetchProfile}/>}
@@ -110,7 +117,7 @@ function PatientProfile({ profile, onRefresh }) {
         )}
       />
       <div className="pa-content-body">
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20 }}>
+        <div className="pa-portal-grid" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20 }}>
           <div style={{ display: 'grid', gap: 20 }}>
             <div className="pa-card">
               <div className="pa-card-head">
@@ -155,9 +162,9 @@ function PatientProfile({ profile, onRefresh }) {
                   ['Member since', profile.created_at?.slice(0, 10)],
                   ['Last login', profile.last_login?.slice(0, 19).replace('T', ' ') ?? '—'],
                 ].map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid var(--line)' }}>
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid var(--line)', flexWrap: 'wrap', gap: 4 }}>
                     <span style={{ color: 'var(--ink-3)' }}>{k}</span>
-                    <span className="pa-mono" style={{ fontSize: 12 }}>{v}</span>
+                    <span className="pa-mono" style={{ fontSize: 12, wordBreak: 'break-all' }}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -224,7 +231,7 @@ function PatientDocuments() {
         right={<button className="pa-btn pa-btn-primary" onClick={fakeUpload}><Icon name="upload" size={14}/> Upload document</button>}
       />
       <div className="pa-content-body">
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20 }}>
+        <div className="pa-portal-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20 }}>
           <div>
             <div
               className="pa-drop"
@@ -380,7 +387,7 @@ function PatientTrials({ profile, onRefresh }) {
         ) : filtered.length === 0 ? (
           <div className="pa-empty"><Icon name="pill" size={20}/><div style={{ marginTop: 10 }}>No trials match your filters.</div></div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
+          <div className="pa-portal-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
             {filtered.map(t => {
               const isEnrolled = enrolled?.trial_id === t.trial_id
               const spotsLeft = t.spots_total - t.spots_enrolled
@@ -398,7 +405,7 @@ function PatientTrials({ profile, onRefresh }) {
                     </div>
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.5 }}>{t.description?.slice(0, 120)}{t.description?.length > 120 ? '…' : ''}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 12 }}>
+                  <div className="pa-portal-details" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 12 }}>
                     <div><div style={{ color: 'var(--ink-3)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Duration</div><div style={{ marginTop: 2 }}>{t.duration}</div></div>
                     <div><div style={{ color: 'var(--ink-3)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Location</div><div style={{ marginTop: 2 }}>{t.location}</div></div>
                     <div><div style={{ color: 'var(--ink-3)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Spots left</div><div style={{ marginTop: 2 }}>{spotsLeft}</div></div>
@@ -546,9 +553,9 @@ function PatientPrivacy({ profile, onRefresh }) {
                   ['Consent status', participant.consent_status],
                   ['Withdrawal triggered', participant.withdrawal_triggered ? 'Yes — PII erased' : 'No'],
                 ].map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid var(--line)' }}>
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid var(--line)', flexWrap: 'wrap', gap: 4 }}>
                     <span style={{ color: 'var(--ink-3)' }}>{k}</span>
-                    <span className="pa-mono" style={{ fontSize: 12 }}>{v}</span>
+                    <span className="pa-mono" style={{ fontSize: 12, wordBreak: 'break-all' }}>{v}</span>
                   </div>
                 ))}
               </div>

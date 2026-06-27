@@ -14,7 +14,7 @@ export default function Privacy() {
 
       {/* ON THIS PAGE */}
       <section style={{ padding: '24px var(--tg-pad-x)', background: 'var(--cream-2)', borderBottom: '1px solid var(--line)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+        <div className="tg-filters-row" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
           <span className="tg-mono" style={{ fontSize: 11, letterSpacing: '0.1em', color: 'var(--ink-3)' }}>ON THIS PAGE</span>
           {[
             ['#what', 'What we collect'],
@@ -31,8 +31,8 @@ export default function Privacy() {
 
       {/* WHAT WE COLLECT */}
       <section id="what" style={{ padding: 'var(--tg-pad-y) var(--tg-pad-x)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '0.7fr 1.3fr', gap: 80 }}>
-          <div style={{ position: 'sticky', top: 100, alignSelf: 'flex-start' }}>
+        <div className="tg-grid-sidebar">
+          <div>
             <span className="tg-eyebrow"><span className="dot"></span>§ What we collect</span>
             <h2 className="tg-serif" style={{ fontSize: 'clamp(32px, 3.6vw, 44px)', lineHeight: 1.1, margin: '14px 0' }}>
               Two buckets — and one of them stays in your hands.
@@ -51,7 +51,7 @@ export default function Privacy() {
                 <div className="tg-serif" style={{ fontSize: 26, marginTop: 6, lineHeight: 1.2 }}>{b.title}</div>
                 <div style={{ display: 'grid', gap: 12, marginTop: 18 }}>
                   {b.items.map(([k, v], j) => (
-                    <div key={j} style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 14, padding: '12px 0', borderTop: j === 0 ? '1px solid var(--line)' : 'none' }}>
+                    <div key={j} className="tg-privacy-item" style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 14, padding: '12px 0', borderTop: j === 0 ? '1px solid var(--line)' : 'none' }}>
                       <span style={{ fontSize: 14, fontWeight: 500 }}>{k}</span>
                       <span style={{ fontSize: 14, color: 'var(--ink-2)' }}>{v}</span>
                     </div>
@@ -69,7 +69,7 @@ export default function Privacy() {
         <h2 className="tg-serif" style={{ fontSize: 'clamp(34px, 3.8vw, 48px)', lineHeight: 1.1, marginTop: 14, maxWidth: '22ch' }}>
           Encrypted on your device. Decrypted only by you.
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--tg-gap)', marginTop: 40 }}>
+        <div className="tg-grid-stats" style={{ marginTop: 40 }}>
           {[
             ['01', 'Key derivation', 'When you set a passphrase, we derive an AES-256-GCM key locally. The passphrase itself never reaches our servers.'],
             ['02', 'Encrypted upload', 'Your vault payload is encrypted in the browser before it leaves your device. We store ciphertext.'],
@@ -94,7 +94,7 @@ export default function Privacy() {
         <h2 className="tg-serif" style={{ fontSize: 'clamp(34px, 3.8vw, 48px)', lineHeight: 1.1, marginTop: 14, maxWidth: '24ch' }}>
           Sharing is always explicit, always per-field, always reversible.
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--tg-gap)', marginTop: 36 }}>
+        <div className="tg-grid-cards" style={{ marginTop: 36 }}>
           {[
             ['Patient → Researcher', 'You approve each data point: share, skip, or redact a portion. The researcher only ever sees your pseudonym ID alongside the fields you released.'],
             ['Patient → Admin', 'Admins never receive your decrypted vault. They handle sponsor verification, audit logs, and platform health — all on metadata only.'],
@@ -110,7 +110,7 @@ export default function Privacy() {
 
       {/* RIGHTS */}
       <section id="rights" style={{ padding: 'var(--tg-pad-y) var(--tg-pad-x)', background: 'var(--sage-tint)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '0.8fr 1.2fr', gap: 64, alignItems: 'flex-start' }}>
+        <div className="tg-grid-content">
           <div>
             <span className="tg-eyebrow"><span className="dot"></span>§ Your rights</span>
             <h2 className="tg-serif" style={{ fontSize: 'clamp(32px, 3.6vw, 44px)', lineHeight: 1.1, marginTop: 14 }}>
@@ -149,7 +149,7 @@ export default function Privacy() {
         <h2 className="tg-serif" style={{ fontSize: 'clamp(34px, 3.8vw, 48px)', lineHeight: 1.1, marginTop: 14, maxWidth: '22ch' }}>
           Boring on purpose. Audited often.
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--tg-gap)', marginTop: 36 }}>
+        <div className="tg-grid-features" style={{ marginTop: 36 }}>
           {[
             ['Encryption at rest', 'AES-256-GCM for every data blob.'],
             ['Encryption in transit', 'TLS 1.3 everywhere. HSTS preload.'],
@@ -170,7 +170,7 @@ export default function Privacy() {
 
       {/* TERMS */}
       <section id="terms" style={{ padding: 'var(--tg-pad-y) var(--tg-pad-x)', background: 'var(--cream-2)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '0.8fr 1.2fr', gap: 64 }}>
+        <div className="tg-grid-content">
           <div>
             <span className="tg-eyebrow"><span className="dot"></span>§ Terms, short version</span>
             <h2 className="tg-serif" style={{ fontSize: 'clamp(32px, 3.6vw, 44px)', lineHeight: 1.1, marginTop: 14 }}>

@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 
 function AuthFrame({ children, brand }) {
   return (
-    <div style={{
+    <div className="tg-auth-frame" style={{
       height: '100%', width: '100%',
       background: 'var(--cream)',
       fontFamily: "'Geist', system-ui, sans-serif",
@@ -14,7 +14,7 @@ function AuthFrame({ children, brand }) {
       display: 'grid',
       gridTemplateColumns: '1.1fr 1fr',
     }}>
-      <div style={{ display: 'flex', flexDirection: 'column', padding: '32px 56px' }}>
+      <div className="tg-auth-form" style={{ display: 'flex', flexDirection: 'column', padding: '32px 56px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}><TgLogo size={22}/></Link>
           <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
@@ -30,7 +30,7 @@ function AuthFrame({ children, brand }) {
           <span className="pa-mono">© 2026 TRIALGUARD</span>
         </div>
       </div>
-      <div style={{
+      <div className="tg-auth-brand" style={{
         background: 'linear-gradient(160deg, var(--sage-tint), var(--coral-tint))',
         position: 'relative', overflow: 'hidden',
         padding: '40px',

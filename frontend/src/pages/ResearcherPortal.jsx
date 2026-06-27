@@ -49,6 +49,13 @@ export default function ResearcherPortal() {
           )}
         />
         <div className="pa-content">
+          <div className="pa-mobile-tabs">
+            {NAV.map(n => (
+              <button key={n.id} className={'pa-mobile-tab' + (tab === n.id ? ' active' : '')} onClick={() => setTab(n.id)}>
+                <Icon name={n.icon} size={14}/> {n.label}
+              </button>
+            ))}
+          </div>
           {tab === 'stats'    && <ResearcherStats trials={trials} loading={loadingTrials} selectedId={selectedId} setSelectedId={setSelectedId}/>}
           {tab === 'schedule' && <ResearcherSchedule/>}
           {tab === 'reports'  && <ResearcherReports/>}
@@ -79,7 +86,7 @@ function ResearcherStats({ trials, loading, selectedId, setSelectedId }) {
         title="Trial stats"
         sub="Aggregate data only. No individual participant records or identifiers are ever exposed."
       />
-      <div className="pa-content-body" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 18, alignItems: 'flex-start' }}>
+      <div className="pa-content-body pa-portal-grid" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 18, alignItems: 'flex-start' }}>
         {/* Trial list */}
         <div style={{ display: 'grid', gap: 8 }}>
           {loading ? (
@@ -125,7 +132,7 @@ function ResearcherStats({ trials, loading, selectedId, setSelectedId }) {
             <div className="pa-card">
               <div style={{ fontFamily: 'Instrument Serif, serif', fontSize: 26, lineHeight: 1.15 }}>{stats.title}</div>
               <div style={{ fontSize: 13, color: 'var(--ink-3)', marginTop: 4 }}>{selected.sponsor} · {selected.phase}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginTop: 20 }}>
+              <div className="pa-portal-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginTop: 20 }}>
                 {[
                   ['Total enrolled', stats.total_enrolled],
                   ['Active', stats.active_participants],
