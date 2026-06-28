@@ -1,0 +1,99 @@
+flowchart LR
+
+    subgraph USERS["Users"]
+        P["Participant"]
+        R["Researcher"]
+        A["Admin"]
+    end
+
+    subgraph INTERNET["Internet"]
+        GH["GitHub\n(CI/CD)"]
+    end
+
+    subgraph EC2["AWS EC2 — Docker Compose Stack"]
+
+        subgraph PROXY["Nginx (Reverse Proxy)"]
+            NX["nginx:443 / 80\nTLS Termination\nSecurity Headers\nHTTP→HTTPS 301"]
+        end
+
+        subgraph FE["Frontend"]
+            REACT["React 18 + Vite SPA\n(served as static dist/)"]
+        end
+
+        subgraph BE["Backend — Flask + Gunicorn :8080"]
+            AUTH["auth_bp\n/api/auth\nregister · login · mfa · logout"]
+            ADMIN["admin_bp\n/api/admin\nusers · compliance · audit"]
+            PART["participant_bp\n/api/participant\nclinical data · consent · trials"]
+            RES["researcher_bp\n/api/researcher\ntrials · study data"]
+
+            AUDIT["Audit Service\nHash-Chained Log\nSHA-256"]
+            EMAIL["Email Service\nGmail SMTP"]
+            VAULT_SVC["Vault Service\nPII proxy calls"]
+
+            SESSION["Session\nHttpOnly · Secure\nSameSite=Strict · 30min"]
+            BCRYPT["bcrypt cost 12\n+ pyotp TOTP MFA"]
+        end
+
+        subgraph PII["PII Vault — Flask :8888"]
+            PII_APP["pii_vault/app.py\nIsolated PII microservice\nname · email · address"]
+        end
+
+        subgraph DBS["Databases"]
+            MYSQL["MySQL :3306\nMain DB\nusers · trials · consents\naudit_log · clinical_data"]
+            VAULT_DB["MySQL vault_db :3306\nPII encrypted store"]
+            MONGO["MongoDB :27017\nStudy data"]
+        end
+
+        subgraph OPS["Operations"]
+            BACKUP["db-backup\nmysqldump every 24h\n7-file rotation"]
+            HEALTH["/api/health\nDocker healthcheck"]
+            FAIL2BAN["fail2ban\njail.local\nbrute-force protection"]
+        end
+    end
+
+    subgraph CICD["CI/CD — GitHub Actions"]
+        direction TB
+        JOB1["JOB 1\nBuild & Lint\nESLint SARIF"]
+        JOB2["JOB 2\nUnit Tests"]
+        JOB3["JOB 3\nOWASP Dependency Check"]
+        JOB4["JOB 4\nCodeQL Analysis\n(v4)"]
+        JOB5["JOB 5\nDeploy to EC2\ngit archive → SCP → docker compose up"]
+        JOB1 --> JOB2 --> JOB3 --> JOB4 --> JOB5
+    end
+
+    P & R & A -->|HTTPS :443| NX
+    NX -->|Static assets| REACT
+    NX -->|/api/*| AUTH & ADMIN & PART & RES
+
+    AUTH --> BCRYPT
+    AUTH --> SESSION
+    AUTH --> AUDIT
+    AUTH --> EMAIL
+
+    ADMIN --> AUDIT
+    PART --> VAULT_SVC
+    PART --> AUDIT
+    RES --> AUDIT
+
+    VAULT_SVC -->|HTTP internal| PII_APP
+
+    AUTH & ADMIN & PART & RES --> MYSQL
+    RES --> MONGO
+    PII_APP --> VAULT_DB
+
+    BACKUP -->|mysqldump| MYSQL
+    BACKUP -->|mysqldump| VAULT_DB
+
+    GH -->|push to main| CICD
+    JOB5 -->|SSH + SCP| EC2
+
+    style USERS fill:#dce8f5,color:#1a2a3a,stroke:#4a9eff
+    style EC2 fill:#d9f0d9,color:#0d2a0d,stroke:#4abf40
+    style PROXY fill:#f5f5d9,color:#2a2a00,stroke:#b0b030
+    style FE fill:#d9eaf5,color:#0d1a2a,stroke:#4a8fbf
+    style BE fill:#eed9f5,color:#1a0d1a,stroke:#9f4abf
+    style PII fill:#f5d9d9,color:#2a0d0d,stroke:#bf4a4a
+    style DBS fill:#d9f0f0,color:#0d1a1a,stroke:#4abfbf
+    style OPS fill:#ebebeb,color:#1a1a1a,stroke:#888
+    style CICD fill:#d9d9f5,color:#0d0d2a,stroke:#6a6abf
+    style INTERNET fill:#ddddf5,color:#0d0d1a,stroke:#4a4abf
