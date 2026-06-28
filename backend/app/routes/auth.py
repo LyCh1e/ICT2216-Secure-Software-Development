@@ -138,7 +138,8 @@ def register():
     ))
     db.session.commit()
 
-    send_verification_email(email, raw_token)
+    if not send_verification_email(email, raw_token):
+        write_audit('verification_email_failed', 'failure', user_id=user_id, ip_address=_ip())
 
     totp_uri = pyotp.TOTP(mfa_secret).provisioning_uri(name=email, issuer_name='TrialGuard')
     write_audit('register', 'success', user_id=user_id, ip_address=_ip())
@@ -304,6 +305,8 @@ def resend_verification():
         user.verify_token         = token_hash
         user.verify_token_expires = datetime.utcnow() + timedelta(hours=24)
         db.session.commit()
-        send_verification_email(email, raw_token)
+        
+        if not send_verification_email(email, raw_token):
+            write_audit('verification_email_failed', 'failure', user_id=user.user_id, ip_address=_ip())
 
     return jsonify({'message': 'If that email is registered and unverified, a new link has been sent.'}), 200
