@@ -528,14 +528,14 @@ Each item below is a verification checkpoint — confirm the principle is upheld
 ### Task 19.1 — Minimise Attack Surface
 
 - [x] Run `docker exec ict2216-secure-software-development-nginx-1 nginx -T | grep "location"` — list all exposed endpoints
-- [ ] Confirm no debug or test routes are accessible in production (`/api/debug`, `/test`, `/admin/seed`)
+- [~] Confirm no debug or test routes are accessible in production (`/api/debug`, `/test`, `/admin/seed`)
 - [x] Confirm MongoDB is not exposed on any public port (`docker compose ps` — port 27017 must not be published)
 
 ### Task 19.2 — Secure Defaults
 
 - [x] HTTPS enforced by default — HTTP returns 301 redirect, never serves content
-- [ ] New user accounts are created with minimum role (Participant), not Admin
-- [ ] Email change and password reset notifications are sent by default
+- [~] New user accounts are created with minimum role (Participant), not Admin
+- [~] Email change and password reset notifications are sent by default
 
 ### Task 19.3 — Least Privilege *(see Phase 17 tasks)*
 
@@ -543,16 +543,16 @@ Each item below is a verification checkpoint — confirm the principle is upheld
 
 ### Task 19.4 — Defence in Depth
 
-- [ ] nginx validates request size and method (Task 12.2)
-- [ ] Flask validates input at API layer (Task 14.4)
-- [ ] MySQL enforces constraints at DB layer (Task 14.3)
-- [ ] All three layers active simultaneously — confirm none is bypassed by direct container access
+- [x] nginx validates request size and method (Task 12.2)
+- [x] Flask validates input at API layer (Task 14.4)
+- [x] MySQL enforces constraints at DB layer (Task 14.3)
+- [x] All three layers active simultaneously — confirm none is bypassed by direct container access
 
 ### Task 19.5 — Fail Securely
 
-- [ ] Search codebase for any privilege variable initialised to a truthy value: `grep -r "is_admin\s*=\s*True\|is_staff\s*=\s*True" backend/`
-- [ ] Confirm Flask 500 handler returns `{"error": "Internal server error"}` with no stack trace (Task 12.1)
-- [ ] Confirm that any exception in authorisation middleware defaults to deny, not allow
+- [x] Search codebase for any privilege variable initialised to a truthy value: `grep -r "is_admin\s*=\s*True\|is_staff\s*=\s*True" backend/`
+- [~] Confirm Flask 500 handler returns `{"error": "Internal server error"}` with no stack trace (Task 12.1)
+- [~] Confirm that any exception in authorisation middleware defaults to deny, not allow
 
 ### Task 19.6 — Don't Trust Services
 
