@@ -105,14 +105,19 @@ Acceptance Criteria:
 
 **Status:** Done
 
-- [x] Confirm TLS certificate has not expired: `openssl s_client -connect 18.223.111.152:443 2>/dev/null | openssl x509 -noout -dates`
-- [x] Verify certificate CN / SAN matches the domain (`medi.trialguard.com`)
+- [x] Confirm TLS certificate has not expired: `openssl x509 -in nginx/certs/cert.pem -noout -dates`
+- [x] Verify certificate CN / SAN matches the domain (`trialguard.xyz`)
 - [x] Document certificate expiry date and schedule manual renewal reminder (Let's Encrypt: 90-day expiry, renew within 30 days)
 - [x] Verify nginx serves HTTPS only — HTTP requests redirect 301 to HTTPS
 
+**Verified:** The deployment uses a **registered domain `trialguard.xyz`** (DNS A record → `18.223.111.152`, confirmed via `dig +short trialguard.xyz`). nginx serves a **publicly-trusted Let's Encrypt certificate** (not self-signed): `subject CN = trialguard.xyz`, `issuer = Let's Encrypt`. `curl -sI https://trialguard.xyz/api/health` succeeds **without `-k`** (exit 0) — i.e. the cert chains to a trusted root with no browser warning. Cert files live in `nginx/certs/` (gitignored, mounted read-only into nginx — deploy-safe). `certbot` is installed on the host with `/etc/letsencrypt/live/trialguard.xyz`. Application links (e.g. email verification) now use `APP_URL=https://trialguard.xyz` so they resolve cleanly under the valid cert.
+
+> **Validity window:** notBefore `Jun 26 2026`, **notAfter `Sep 24 2026`** (90-day Let's Encrypt). Renew by ~Aug 25 2026. *(After the D2 freeze, so no submission impact.)*
+> **Follow-up (renewal automation):** confirm whether `nginx/certs/cert.pem` is a *symlink* to `/etc/letsencrypt/live/trialguard.xyz/` or a *copy* — if a copy, certbot renewal won't reach the mounted cert, so a renewal/deploy hook (copy cert + restart nginx) is needed before Sep 24.
+
 Acceptance Criteria:
-- [x] Certificate validity window shown; expiry date recorded in this file: ___________
-- [x] `curl -sk http://18.223.111.152/` returns `301 Moved Permanently` to `https://`
+- [x] Certificate validity window shown; expiry date recorded in this file: **Sep 24 2026**
+- [x] `curl -sI http://trialguard.xyz/` returns `301 Moved Permanently` to `https://`; `https://trialguard.xyz/api/health` returns 200 with a trusted cert (no `-k` needed)
 
 ---
 
