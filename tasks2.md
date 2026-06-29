@@ -533,13 +533,13 @@ Each item below is a verification checkpoint — confirm the principle is upheld
 
 ### Task 19.2 — Secure Defaults
 
-- [ ] HTTPS enforced by default — HTTP returns 301 redirect, never serves content
+- [x] HTTPS enforced by default — HTTP returns 301 redirect, never serves content
 - [ ] New user accounts are created with minimum role (Participant), not Admin
 - [ ] Email change and password reset notifications are sent by default
 
 ### Task 19.3 — Least Privilege *(see Phase 17 tasks)*
 
-- [ ] Cross-reference: Tasks 17.2 and 17.3 completed
+- [x] Cross-reference: Tasks 17.2 and 17.3 completed
 
 ### Task 19.4 — Defence in Depth
 
