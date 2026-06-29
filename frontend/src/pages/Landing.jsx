@@ -270,7 +270,12 @@ export default function Landing() {
       </footer>
 
       <Modal open={modal} onClose={() => setModal(false)}>
-        <PhotoSlot aspect="16 / 9" label="video · 2-min product overview"/>
+        <video
+          src="/demo.mp4"
+          controls
+          autoPlay
+          style={{ width: '100%', borderRadius: 12, display: 'block' }}
+        />
         <p style={{ marginTop: 18, color: 'var(--ink-2)' }}>
           A short walkthrough: creating a pseudonym, running the screener, and consenting to share specific data points with a study coordinator.
         </p>
