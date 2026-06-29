@@ -1,12 +1,24 @@
 import { useState } from 'react'
 import lockprofileImg from '../../media/lock-icon.jpg'
 import relaxImg from '../../media/relax.png'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { TgLogo, Icon, PhotoSlot, FaqList, EmailCapture, EligibilityQuiz, Modal, TrialCard } from '../components/shared'
 import { TG_TRIALS, TG_STEPS, TG_STATS, TG_QUOTES } from '../data/landing'
+import { useAuth } from '../context/AuthContext'
+import { api } from '../api'
+
+const ROLE_PATHS = { participant: '/patient', researcher: '/researcher', admin: '/admin' }
+const ROLE_LABELS = { participant: 'Patient Portal', researcher: 'Researcher Portal', admin: 'Admin Portal' }
 
 export default function Landing() {
   const [modal, setModal] = useState(false)
+  const { auth, logout } = useAuth()
+  const nav = useNavigate()
+  async function handleLogout() {
+    try { await api.post('/api/auth/logout') } catch {}
+    logout()
+    nav('/login', { replace: true })
+  }
   return (
     <div className="tg-root" data-variant="editorial">
       {/* NAV */}
@@ -19,9 +31,31 @@ export default function Landing() {
           <Link to="/researchers" style={{ textDecoration: 'none', color: 'inherit' }}>For researchers</Link>
           <Link to="/faq" style={{ textDecoration: 'none', color: 'inherit' }}>FAQ</Link>
         </div>
-        <div className="tg-nav-actions" style={{ display: 'flex', gap: 10 }}>
-          <Link to="/login" className="tg-btn tg-btn-ghost" style={{ padding: '10px 16px', fontSize: 14, textDecoration: 'none' }}>Sign in</Link>
-          <Link to="/signup" className="tg-btn tg-btn-primary" style={{ padding: '10px 18px', fontSize: 14, textDecoration: 'none' }}>Get a pseudonym</Link>
+        <div className="tg-nav-actions" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {auth ? (
+            <>
+              <Link to={ROLE_PATHS[auth.role] ?? '/login'} className="tg-btn tg-btn-primary" style={{ padding: '10px 18px', fontSize: 14, textDecoration: 'none' }}>
+                {ROLE_LABELS[auth.role] ?? 'Dashboard'} <Icon name="arrow" size={14}/>
+              </Link>
+              <button onClick={handleLogout} title="Sign out" style={{ appearance: 'none', border: 0, cursor: 'pointer', width: 32, height: 32, borderRadius: 8, background: 'transparent', color: 'var(--ink-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="lock" size={16}/>
+              </button>
+              <div className="tg-nav-user" style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 10, borderLeft: '1px solid var(--line)' }}>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 12, fontWeight: 500 }}>{auth.username}</div>
+                  <div style={{ fontFamily: 'Geist Mono, monospace', fontSize: 10, color: 'var(--ink-3)' }}>{auth.role === 'participant' ? 'participant' : auth.role === 'admin' ? 'admin · L2' : 'cohort lead'}</div>
+                </div>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--sage)', color: 'var(--cream)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Geist Mono, monospace', fontSize: 11, border: '1px solid var(--sage-2)' }}>
+                  {auth.username?.slice(0, 2).toUpperCase()}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="tg-btn tg-btn-ghost" style={{ padding: '10px 16px', fontSize: 14, textDecoration: 'none' }}>Sign in</Link>
+              <Link to="/signup" className="tg-btn tg-btn-primary" style={{ padding: '10px 18px', fontSize: 14, textDecoration: 'none' }}>Get a pseudonym</Link>
+            </>
+          )}
         </div>
       </nav>
 
