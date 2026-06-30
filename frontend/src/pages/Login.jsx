@@ -84,7 +84,7 @@ export default function Login() {
       await api.post('/api/auth/login', { identifier: id.trim(), password: pass })
       setStage('2fa')
     } catch (ex) {
-      setErr(ex.status === 429 ? 'Too many attempts — wait a minute and try again.' : 'Invalid credentials.')
+      setErr(ex.status === 429 ? 'Too many attempts — wait a minute and try again.' : ex.status === 403 ? 'Please verify your email address before logging in.' : 'Invalid credentials.')
     } finally {
       setLoading(false)
     }

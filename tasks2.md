@@ -105,14 +105,19 @@ Acceptance Criteria:
 
 **Status:** Done
 
-- [x] Confirm TLS certificate has not expired: `openssl s_client -connect 18.223.111.152:443 2>/dev/null | openssl x509 -noout -dates`
-- [x] Verify certificate CN / SAN matches the domain (`medi.trialguard.com`)
+- [x] Confirm TLS certificate has not expired: `openssl x509 -in nginx/certs/cert.pem -noout -dates`
+- [x] Verify certificate CN / SAN matches the domain (`trialguard.xyz`)
 - [x] Document certificate expiry date and schedule manual renewal reminder (Let's Encrypt: 90-day expiry, renew within 30 days)
 - [x] Verify nginx serves HTTPS only — HTTP requests redirect 301 to HTTPS
 
+**Verified:** The deployment uses a **registered domain `trialguard.xyz`** (DNS A record → `18.223.111.152`, confirmed via `dig +short trialguard.xyz`). nginx serves a **publicly-trusted Let's Encrypt certificate** (not self-signed): `subject CN = trialguard.xyz`, `issuer = Let's Encrypt`. `curl -sI https://trialguard.xyz/api/health` succeeds **without `-k`** (exit 0) — i.e. the cert chains to a trusted root with no browser warning. Cert files live in `nginx/certs/` (gitignored, mounted read-only into nginx — deploy-safe). `certbot` is installed on the host with `/etc/letsencrypt/live/trialguard.xyz`. Application links (e.g. email verification) now use `APP_URL=https://trialguard.xyz` so they resolve cleanly under the valid cert.
+
+> **Validity window:** notBefore `Jun 26 2026`, **notAfter `Sep 24 2026`** (90-day Let's Encrypt). Renew by ~Aug 25 2026. *(After the D2 freeze, so no submission impact.)*
+> **Follow-up (renewal automation):** confirm whether `nginx/certs/cert.pem` is a *symlink* to `/etc/letsencrypt/live/trialguard.xyz/` or a *copy* — if a copy, certbot renewal won't reach the mounted cert, so a renewal/deploy hook (copy cert + restart nginx) is needed before Sep 24.
+
 Acceptance Criteria:
-- [x] Certificate validity window shown; expiry date recorded in this file: ___________
-- [x] `curl -sk http://18.223.111.152/` returns `301 Moved Permanently` to `https://`
+- [x] Certificate validity window shown; expiry date recorded in this file: **Sep 24 2026**
+- [x] `curl -sI http://trialguard.xyz/` returns `301 Moved Permanently` to `https://`; `https://trialguard.xyz/api/health` returns 200 with a trusted cert (no `-k` needed)
 
 ---
 
@@ -523,31 +528,31 @@ Each item below is a verification checkpoint — confirm the principle is upheld
 ### Task 19.1 — Minimise Attack Surface
 
 - [x] Run `docker exec ict2216-secure-software-development-nginx-1 nginx -T | grep "location"` — list all exposed endpoints
-- [ ] Confirm no debug or test routes are accessible in production (`/api/debug`, `/test`, `/admin/seed`)
+- [~] Confirm no debug or test routes are accessible in production (`/api/debug`, `/test`, `/admin/seed`)
 - [x] Confirm MongoDB is not exposed on any public port (`docker compose ps` — port 27017 must not be published)
 
 ### Task 19.2 — Secure Defaults
 
-- [ ] HTTPS enforced by default — HTTP returns 301 redirect, never serves content
-- [ ] New user accounts are created with minimum role (Participant), not Admin
-- [ ] Email change and password reset notifications are sent by default
+- [x] HTTPS enforced by default — HTTP returns 301 redirect, never serves content
+- [~] New user accounts are created with minimum role (Participant), not Admin
+- [~] Email change and password reset notifications are sent by default
 
 ### Task 19.3 — Least Privilege *(see Phase 17 tasks)*
 
-- [ ] Cross-reference: Tasks 17.2 and 17.3 completed
+- [x] Cross-reference: Tasks 17.2 and 17.3 completed
 
 ### Task 19.4 — Defence in Depth
 
-- [ ] nginx validates request size and method (Task 12.2)
-- [ ] Flask validates input at API layer (Task 14.4)
-- [ ] MySQL enforces constraints at DB layer (Task 14.3)
-- [ ] All three layers active simultaneously — confirm none is bypassed by direct container access
+- [x] nginx validates request size and method (Task 12.2)
+- [x] Flask validates input at API layer (Task 14.4)
+- [x] MySQL enforces constraints at DB layer (Task 14.3)
+- [x] All three layers active simultaneously — confirm none is bypassed by direct container access
 
 ### Task 19.5 — Fail Securely
 
-- [ ] Search codebase for any privilege variable initialised to a truthy value: `grep -r "is_admin\s*=\s*True\|is_staff\s*=\s*True" backend/`
-- [ ] Confirm Flask 500 handler returns `{"error": "Internal server error"}` with no stack trace (Task 12.1)
-- [ ] Confirm that any exception in authorisation middleware defaults to deny, not allow
+- [x] Search codebase for any privilege variable initialised to a truthy value: `grep -r "is_admin\s*=\s*True\|is_staff\s*=\s*True" backend/`
+- [~] Confirm Flask 500 handler returns `{"error": "Internal server error"}` with no stack trace (Task 12.1)
+- [~] Confirm that any exception in authorisation middleware defaults to deny, not allow
 
 ### Task 19.6 — Don't Trust Services
 
