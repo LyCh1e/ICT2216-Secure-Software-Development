@@ -205,7 +205,17 @@ def apply_to_trial(trial_id):
         consent_text_version=consent_version,
         digital_signature_hash=sig_hash,
     ))
-    trial.spots_enrolled += 1
+    result = db.session.execute(
+        db.update(Trial)
+        .where(Trial.trial_id == trial_id, Trial.spots_enrolled < Trial.spots_total)
+        .values(spots_enrolled=Trial.spots_enrolled + 1)
+    )
+    if result.rowcount == 0:
+        db.session.rollback()
+        write_audit('consent_submit', 'failure', user_id=user_id,
+                    resource_affected=trial_id, ip_address=_ip())
+        return jsonify({'error': 'Trial is full.'}), 409
+
     db.session.commit()
 
     write_audit('consent_submit', 'success', user_id=user_id,
